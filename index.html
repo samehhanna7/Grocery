@@ -355,6 +355,20 @@
       -webkit-tap-highlight-color: transparent;
     }
     .item-delete:hover { color: #FF4444; }
+    .item-skip {
+      background: none;
+      border: none;
+      color: #CCC;
+      font-size: 16px;
+      cursor: pointer;
+      padding: 13px 4px;
+      border-radius: 8px;
+      flex-shrink: 0;
+      transition: color 0.2s;
+      touch-action: manipulation;
+      -webkit-tap-highlight-color: transparent;
+    }
+    .item-skip:hover { color: #F5820A; }
 
     /* BOTTOM NAV */
     .bottom-nav {
@@ -982,6 +996,7 @@ function renderList() {
       if (item.ownership === 'wife') badge = `<span class="item-badge badge-wife">Wife</span>`;
       else if (item.ownership === 'shared') badge = `<span class="item-badge badge-shared">Shared</span>`;
       else if (item.recurring) badge = `<span class="item-badge badge-recurring">↻ Weekly</span>`;
+      const skipBtn = item.recurring ? `<button class="item-skip" onclick="skipItem('${item.name.replace(/'/g,"\\'")}', event)">⏭</button>` : '';
       html += `<div class="item-card ${item.checked ? 'checked' : ''}" onclick="toggleCheck(${item.id})">
         <div class="item-check">${item.checked ? '✓' : ''}</div>
         <div class="item-info">
@@ -989,6 +1004,7 @@ function renderList() {
           <div class="item-meta">${item.category}</div>
         </div>
         ${badge}
+        ${skipBtn}
         <button class="item-delete" onclick="deleteItem(${item.id}, event)">✕</button>
       </div>`;
     });
@@ -1072,6 +1088,7 @@ function renderSchedule() {
           <div class="schedule-item-name">${cat.icon} ${s.name}</div>
           <span class="schedule-freq">${currentFreq}</span>
         </div>
+        <button class="item-skip" onclick="skipItem('${s.name.replace(/'/g,"\\'")}', event)">⏭</button>
         <button class="item-delete" onclick="deleteScheduledItem('${s.name.replace(/'/g,"\\'")}')">✕</button>
       </div>
       <div class="schedule-next">Next up: ${s.nextDate}</div>
@@ -1079,6 +1096,28 @@ function renderSchedule() {
     </div>`;
   });
   container.innerHTML = html;
+}
+
+// ─── SKIP ITEM ─────────────────────────────────────────────────────────────────
+
+function skipItem(name, e) {
+  e.stopPropagation();
+  const storeData = loadData();
+  const schedule = storeData.schedules.find(s => s.name.toLowerCase() === name.toLowerCase());
+  if (!schedule) {
+    showToast('No schedule found for ' + name);
+    return;
+  }
+  schedule.nextDate = addDays(schedule.nextDate, schedule.intervalDays);
+  saveData(storeData);
+  if (document.getElementById('page-schedule').classList.contains('active')) {
+    renderSchedule();
+  }
+  const d = new Date(schedule.nextDate + 'T00:00:00');
+  const weekday = d.toLocaleDateString('en-US', { weekday: 'short' });
+  const month = d.toLocaleDateString('en-US', { month: 'short' });
+  const day = d.getDate();
+  showToast(`${name} skipped — next up ${weekday} ${month} ${day}`);
 }
 
 // ─── DELETE SCHEDULED ITEM ─────────────────────────────────────────────────────
