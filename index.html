@@ -57,7 +57,10 @@
       color: var(--text-muted);
       margin-bottom: 16px;
     }
-    .store-badge {
+
+    /* STORE SWITCHER BUTTON */
+    .store-btn-wrap { position: relative; }
+    .store-btn {
       display: inline-flex;
       align-items: center;
       gap: 5px;
@@ -67,7 +70,61 @@
       font-weight: 700;
       padding: 4px 10px;
       border-radius: 99px;
+      border: none;
+      cursor: pointer;
+      touch-action: manipulation;
+      -webkit-tap-highlight-color: transparent;
     }
+    .store-chevron { font-size: 10px; }
+
+    /* STORE DROPDOWN */
+    .store-dropdown {
+      position: absolute;
+      top: calc(100% + 6px);
+      right: 0;
+      background: var(--bg);
+      border: 1.5px solid #F0F0F0;
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      min-width: 180px;
+      z-index: 50;
+      overflow: hidden;
+    }
+    .store-dropdown-item {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 12px 16px;
+      font-size: 14px;
+      font-weight: 600;
+      cursor: pointer;
+      touch-action: manipulation;
+      -webkit-tap-highlight-color: transparent;
+      transition: background 0.15s;
+    }
+    .store-dropdown-item:hover { background: var(--surface); }
+    .store-dropdown-item.active { color: var(--orange); }
+    .store-dropdown-item .store-day {
+      font-size: 11px;
+      font-weight: 500;
+      color: var(--text-muted);
+      margin-left: auto;
+    }
+    .store-dropdown-divider { height: 1px; background: #F0F0F0; }
+    .store-dropdown-add {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 12px 16px;
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--blue);
+      cursor: pointer;
+      touch-action: manipulation;
+      -webkit-tap-highlight-color: transparent;
+      transition: background 0.15s;
+    }
+    .store-dropdown-add:hover { background: var(--blue-light); }
 
     /* ADD ITEM BAR */
     .add-bar {
@@ -171,14 +228,10 @@
       border-color: #FECACA;
       color: #EF4444;
     }
-    .freq-change-pill.remove:hover {
-      background: #FEF2F2;
-    }
+    .freq-change-pill.remove:hover { background: #FEF2F2; }
 
     /* PROGRESS BAR */
-    .progress-wrap {
-      padding: 0 20px 20px;
-    }
+    .progress-wrap { padding: 0 20px 20px; }
     .progress-label {
       display: flex;
       justify-content: space-between;
@@ -285,18 +338,9 @@
       border-radius: 99px;
       flex-shrink: 0;
     }
-    .badge-recurring {
-      background: var(--orange-light);
-      color: var(--orange);
-    }
-    .badge-wife {
-      background: var(--blue-light);
-      color: var(--blue);
-    }
-    .badge-shared {
-      background: var(--yellow-light);
-      color: #B8940A;
-    }
+    .badge-recurring { background: var(--orange-light); color: var(--orange); }
+    .badge-wife { background: var(--blue-light); color: var(--blue); }
+    .badge-shared { background: var(--yellow-light); color: #B8940A; }
     .item-delete {
       background: none;
       border: none;
@@ -368,10 +412,7 @@
       justify-content: space-between;
       margin-bottom: 10px;
     }
-    .schedule-item-name {
-      font-size: 15px;
-      font-weight: 700;
-    }
+    .schedule-item-name { font-size: 15px; font-weight: 700; }
     .schedule-freq {
       font-size: 12px;
       color: var(--orange);
@@ -380,15 +421,8 @@
       padding: 3px 9px;
       border-radius: 99px;
     }
-    .schedule-next {
-      font-size: 12px;
-      color: var(--text-muted);
-    }
-    .page-title {
-      font-size: 22px;
-      font-weight: 800;
-      padding: 24px 20px 16px;
-    }
+    .schedule-next { font-size: 12px; color: var(--text-muted); }
+    .page-title { font-size: 22px; font-weight: 800; padding: 24px 20px 16px; }
 
     /* EMPTY STATE */
     .empty-state {
@@ -416,13 +450,93 @@
       z-index: 200;
       white-space: nowrap;
     }
-    .toast.show {
-      opacity: 1;
-      transform: translateX(-50%) translateY(0);
-    }
+    .toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
 
     /* DIVIDER */
     .divider { height: 12px; }
+
+    /* MODAL */
+    .modal-overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,0.4);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 300;
+      padding: 24px;
+    }
+    .modal-box {
+      background: var(--bg);
+      border-radius: var(--radius);
+      padding: 24px;
+      width: 100%;
+      max-width: 360px;
+    }
+    .modal-title {
+      font-size: 18px;
+      font-weight: 800;
+      margin-bottom: 20px;
+    }
+    .modal-field { margin-bottom: 16px; }
+    .modal-label {
+      display: block;
+      font-size: 12px;
+      font-weight: 700;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      letter-spacing: 0.4px;
+      margin-bottom: 6px;
+    }
+    .modal-input {
+      width: 100%;
+      border: 2px solid #F0F0F0;
+      border-radius: 12px;
+      padding: 12px 16px;
+      font-size: 16px;
+      background: var(--surface);
+      outline: none;
+      transition: border-color 0.2s;
+    }
+    .modal-input:focus { border-color: var(--orange); }
+    .modal-input.error { border-color: #EF4444; }
+    .modal-error {
+      font-size: 12px;
+      color: #EF4444;
+      margin-top: 5px;
+      min-height: 16px;
+    }
+    .modal-actions {
+      display: flex;
+      gap: 10px;
+      margin-top: 8px;
+    }
+    .modal-btn-cancel {
+      flex: 1;
+      background: var(--surface);
+      color: var(--text-muted);
+      border: 2px solid #F0F0F0;
+      border-radius: 12px;
+      padding: 12px;
+      font-size: 14px;
+      font-weight: 700;
+      cursor: pointer;
+      touch-action: manipulation;
+      -webkit-tap-highlight-color: transparent;
+    }
+    .modal-btn-create {
+      flex: 1;
+      background: var(--orange);
+      color: white;
+      border: none;
+      border-radius: 12px;
+      padding: 12px;
+      font-size: 14px;
+      font-weight: 700;
+      cursor: pointer;
+      touch-action: manipulation;
+      -webkit-tap-highlight-color: transparent;
+    }
   </style>
 </head>
 <body>
@@ -432,7 +546,13 @@
   <div class="header">
     <div class="header-top">
       <div class="header-title">My Groceries</div>
-      <span class="store-badge" id="store-badge">🛒 Sobeys · Sat</span>
+      <div class="store-btn-wrap">
+        <button class="store-btn" id="store-btn" onclick="toggleStoreDropdown(event)">
+          <span id="store-btn-label">🛒 Sobeys</span>
+          <span class="store-chevron">▾</span>
+        </button>
+        <div class="store-dropdown" id="store-dropdown" style="display:none;"></div>
+      </div>
     </div>
     <div class="header-subtitle" id="header-subtitle">Loading your list...</div>
   </div>
@@ -491,23 +611,73 @@
 <!-- TOAST -->
 <div class="toast" id="toast"></div>
 
+<!-- ADD STORE MODAL -->
+<div class="modal-overlay" id="store-modal" style="display:none;" onclick="handleModalOverlayClick(event)">
+  <div class="modal-box" onclick="event.stopPropagation()">
+    <div class="modal-title">Add New Store</div>
+    <div class="modal-field">
+      <label class="modal-label">Store name</label>
+      <input class="modal-input" id="modal-store-name" type="text" placeholder="e.g. Whole Foods" autocomplete="off" />
+      <div class="modal-error" id="modal-name-error"></div>
+    </div>
+    <div class="modal-field">
+      <label class="modal-label">Shopping day (optional)</label>
+      <input class="modal-input" id="modal-shopping-day" type="text" placeholder="e.g. Sunday" autocomplete="off" />
+    </div>
+    <div class="modal-actions">
+      <button class="modal-btn-cancel" onclick="closeStoreModal()">Cancel</button>
+      <button class="modal-btn-create" onclick="createStore()">Create Store</button>
+    </div>
+  </div>
+</div>
+
 <script>
-// ─── DATA LAYER ────────────────────────────────────────────────────────────────
+// ─── CONSTANTS ─────────────────────────────────────────────────────────────────
 
 const CATEGORIES = {
-  'Produce':          { icon: '🥦', color: '#22C55E', items: ['carrots','apples','bananas','avocados','blueberries','raspberries'] },
-  'Dairy & Milk':     { icon: '🥛', color: '#3B82F6', items: ['protein milk','regular milk','milk'] },
-  'Yogurt':           { icon: '🫙', color: '#A78BFA', items: ['protein yogurt','coconut yogurt','yogurt'] },
-  'Meat & Seafood':   { icon: '🍗', color: '#EF4444', items: ['chicken thighs','shrimp','chicken','beef','salmon'] },
-  'Breakfast':        { icon: '🥣', color: '#F59E0B', items: ['cereal','granola mini','granola','oats'] },
-  'Supplements':      { icon: '💪', color: '#F5820A', items: ['protein shakes','pre-workout','creatine','protein powder'] },
-  'Snacks':           { icon: '🥜', color: '#84CC16', items: ['pistachios','almonds','cashews','nuts'] },
-  'Other':            { icon: '🛍️', color: '#94A3B8', items: [] },
+  'Produce':        { icon: '🥦', color: '#22C55E', items: ['carrots','apples','bananas','avocados','blueberries','raspberries'] },
+  'Dairy & Milk':   { icon: '🥛', color: '#3B82F6', items: ['protein milk','regular milk','milk'] },
+  'Yogurt':         { icon: '🫙', color: '#A78BFA', items: ['protein yogurt','coconut yogurt','yogurt'] },
+  'Meat & Seafood': { icon: '🍗', color: '#EF4444', items: ['chicken thighs','shrimp','chicken','beef','salmon'] },
+  'Breakfast':      { icon: '🥣', color: '#F59E0B', items: ['cereal','granola mini','granola','oats'] },
+  'Supplements':    { icon: '💪', color: '#F5820A', items: ['protein shakes','pre-workout','creatine','protein powder'] },
+  'Snacks':         { icon: '🥜', color: '#84CC16', items: ['pistachios','almonds','cashews','nuts'] },
+  'Other':          { icon: '🛍️', color: '#94A3B8', items: [] },
 };
 
-// Items that belong to wife only or shared
-const WIFE_ITEMS = ['raspberries','coconut yogurt','avocados'];
+const WIFE_ITEMS   = ['raspberries','coconut yogurt','avocados'];
 const SHARED_ITEMS = ['blueberries'];
+
+const STARTER_ITEMS = [
+  { name: 'Protein Milk',   freq: 7  },
+  { name: 'Regular Milk',   freq: 7  },
+  { name: 'Protein Yogurt', freq: 7  },
+  { name: 'Coconut Yogurt', freq: 7  },
+  { name: 'Carrots',        freq: 7  },
+  { name: 'Apples',         freq: 7  },
+  { name: 'Bananas',        freq: 7  },
+  { name: 'Protein Shakes', freq: 7  },
+  { name: 'Chicken Thighs', freq: 7  },
+  { name: 'Blueberries',    freq: 7  },
+  { name: 'Raspberries',    freq: 7  },
+  { name: 'Shrimp',         freq: 14 },
+  { name: 'Cereal',         freq: 14 },
+  { name: 'Granola Mini',   freq: 14 },
+  { name: 'Pre-Workout',    freq: 14 },
+  { name: 'Creatine',       freq: 14 },
+  { name: 'Avocados',       freq: 7  },
+  { name: 'Pistachios',     freq: 14 },
+];
+
+const FREQ_PRESETS = [
+  { label: 'Daily',        days: 1  },
+  { label: 'Every 3 Days', days: 3  },
+  { label: 'Weekly',       days: 7  },
+  { label: 'Biweekly',     days: 14 },
+  { label: 'Monthly',      days: 30 },
+];
+
+// ─── HELPERS ───────────────────────────────────────────────────────────────────
 
 function categorize(name) {
   const lower = name.toLowerCase().trim();
@@ -525,66 +695,6 @@ function getOwnership(name) {
   return 'mine';
 }
 
-function loadData() {
-  return JSON.parse(localStorage.getItem('groceryApp') || 'null') || {
-    items: [],          // current list items
-    history: [],        // log of every addition: {name, date, category}
-    schedules: [],      // {name, intervalDays, nextDate, category}
-    lastSeedDate: null
-  };
-}
-
-function saveData(data) {
-  localStorage.setItem('groceryApp', JSON.stringify(data));
-}
-
-// ─── SEED STARTER ITEMS ────────────────────────────────────────────────────────
-
-const STARTER_ITEMS = [
-  { name: 'Protein Milk',    freq: 7  },
-  { name: 'Regular Milk',    freq: 7  },
-  { name: 'Protein Yogurt',  freq: 7  },
-  { name: 'Coconut Yogurt',  freq: 7  },
-  { name: 'Carrots',         freq: 7  },
-  { name: 'Apples',          freq: 7  },
-  { name: 'Bananas',         freq: 7  },
-  { name: 'Protein Shakes',  freq: 7  },
-  { name: 'Chicken Thighs',  freq: 7  },
-  { name: 'Blueberries',     freq: 7  },
-  { name: 'Raspberries',     freq: 7  },
-  { name: 'Shrimp',          freq: 14 },
-  { name: 'Cereal',          freq: 14 },
-  { name: 'Granola Mini',    freq: 14 },
-  { name: 'Pre-Workout',     freq: 14 },
-  { name: 'Creatine',        freq: 14 },
-  { name: 'Avocados',        freq: 7  },
-  { name: 'Pistachios',      freq: 14 },
-];
-
-function seedStarterItems(data) {
-  if (data.lastSeedDate) return; // already seeded
-  const today = todayStr();
-
-  STARTER_ITEMS.forEach(s => {
-    const cat = categorize(s.name);
-    // Add to history as a baseline data point
-    data.history.push({ name: s.name, date: today, category: cat, seeded: true });
-    // Schedule based on known routine
-    data.schedules.push({
-      name: s.name,
-      intervalDays: s.freq,
-      nextDate: today,
-      category: cat,
-      seeded: true
-    });
-  });
-
-  data.lastSeedDate = today;
-  saveData(data);
-}
-
-// ─── SCHEDULING ────────────────────────────────────────────────────────────────
-
 function todayStr() {
   return new Date().toISOString().split('T')[0];
 }
@@ -595,19 +705,91 @@ function addDays(dateStr, days) {
   return d.toISOString().split('T')[0];
 }
 
-function checkSchedules(data) {
+function freqName(days) {
+  if (days === 0) return 'As Needed';
+  const preset = FREQ_PRESETS.find(p => p.days === days);
+  return preset ? preset.label : `Every ${days} days`;
+}
+
+function emptyStore(shoppingDay) {
+  return { shoppingDay: shoppingDay || null, items: [], history: [], schedules: [], lastSeedDate: null };
+}
+
+// ─── APP DATA LAYER ────────────────────────────────────────────────────────────
+// loadAppData / saveAppData handle the full structure.
+// loadData / saveData work only on the active store's slice.
+
+function loadAppData() {
+  const raw = JSON.parse(localStorage.getItem('groceryApp') || 'null');
+
+  // Migration: old flat format had a top-level items array
+  if (raw && Array.isArray(raw.items)) {
+    const migrated = {
+      activeStore: 'Sobeys',
+      stores: {
+        'Sobeys': {
+          shoppingDay: 'Saturday',
+          items:        raw.items        || [],
+          history:      raw.history      || [],
+          schedules:    raw.schedules    || [],
+          lastSeedDate: raw.lastSeedDate || null
+        }
+      }
+    };
+    localStorage.setItem('groceryApp', JSON.stringify(migrated));
+    return migrated;
+  }
+
+  return raw || {
+    activeStore: 'Sobeys',
+    stores: { 'Sobeys': emptyStore('Saturday') }
+  };
+}
+
+function saveAppData(appData) {
+  localStorage.setItem('groceryApp', JSON.stringify(appData));
+}
+
+function loadData() {
+  const app = loadAppData();
+  return app.stores[app.activeStore];
+}
+
+function saveData(storeData) {
+  const app = loadAppData();
+  app.stores[app.activeStore] = storeData;
+  saveAppData(app);
+}
+
+// ─── SEED STARTER ITEMS (Sobeys only) ─────────────────────────────────────────
+
+function seedStarterItems(storeData) {
+  const app = loadAppData();
+  if (app.activeStore !== 'Sobeys') return;
+  if (storeData.lastSeedDate) return;
   const today = todayStr();
-  let added = [];
-  data.schedules.forEach(s => {
+  STARTER_ITEMS.forEach(s => {
+    const cat = categorize(s.name);
+    storeData.history.push({ name: s.name, date: today, category: cat, seeded: true });
+    storeData.schedules.push({ name: s.name, intervalDays: s.freq, nextDate: today, category: cat, seeded: true });
+  });
+  storeData.lastSeedDate = today;
+  saveData(storeData);
+}
+
+// ─── SCHEDULING ────────────────────────────────────────────────────────────────
+
+function checkSchedules(storeData) {
+  const today = todayStr();
+  const added = [];
+  storeData.schedules.forEach(s => {
     if (s.nextDate <= today) {
-      // Check if item already on list
-      const alreadyOn = data.items.find(i => i.name.toLowerCase() === s.name.toLowerCase() && !i.checked);
+      const alreadyOn = storeData.items.find(i => i.name.toLowerCase() === s.name.toLowerCase() && !i.checked);
       if (!alreadyOn) {
-        const cat = categorize(s.name);
-        data.items.push({
+        storeData.items.push({
           id: Date.now() + Math.random(),
           name: s.name,
-          category: cat,
+          category: categorize(s.name),
           checked: false,
           added: today,
           recurring: true,
@@ -623,38 +805,26 @@ function checkSchedules(data) {
 
 // ─── FREQUENCY TRACKING ────────────────────────────────────────────────────────
 
-function updateFrequency(data, name) {
+function updateFrequency(storeData, name) {
   const lower = name.toLowerCase().trim();
-  const entries = data.history.filter(h => h.name.toLowerCase() === lower && !h.seeded);
-  if (entries.length < 2) return; // need at least 2 real data points
-
-  // Calculate average interval
-  const dates = entries.map(e => new Date(e.date)).sort((a,b) => a-b);
+  const entries = storeData.history.filter(h => h.name.toLowerCase() === lower && !h.seeded);
+  if (entries.length < 2) return;
+  const dates = entries.map(e => new Date(e.date)).sort((a, b) => a - b);
   let totalDays = 0;
-  for (let i = 1; i < dates.length; i++) {
-    totalDays += (dates[i] - dates[i-1]) / 86400000;
-  }
+  for (let i = 1; i < dates.length; i++) totalDays += (dates[i] - dates[i - 1]) / 86400000;
   const avgDays = Math.round(totalDays / (dates.length - 1));
   if (avgDays < 1) return;
-
-  // Update or create schedule
-  const existing = data.schedules.find(s => s.name.toLowerCase() === lower);
+  const existing = storeData.schedules.find(s => s.name.toLowerCase() === lower);
   if (existing) {
     existing.intervalDays = avgDays;
   } else {
-    data.schedules.push({
-      name: name,
-      intervalDays: avgDays,
-      nextDate: addDays(todayStr(), avgDays),
-      category: categorize(name),
-      seeded: false
-    });
+    storeData.schedules.push({ name, intervalDays: avgDays, nextDate: addDays(todayStr(), avgDays), category: categorize(name), seeded: false });
   }
 }
 
 // ─── FREQUENCY SELECTOR (add bar) ─────────────────────────────────────────────
 
-let selectedFreqDays = 7; // default: weekly
+let selectedFreqDays = 7;
 
 function selectFreq(el) {
   document.querySelectorAll('.freq-pill').forEach(p => p.classList.remove('selected'));
@@ -668,50 +838,24 @@ function addItem() {
   const input = document.getElementById('add-input');
   const name = input.value.trim();
   if (!name) return;
-
-  const data = loadData();
+  const storeData = loadData();
   const cat = categorize(name);
-  const ownership = getOwnership(name);
   const today = todayStr();
-
-  // Add to list
-  data.items.push({
-    id: Date.now(),
-    name: name,
-    category: cat,
-    checked: false,
-    added: today,
-    recurring: false,
-    ownership
-  });
-
-  // Track history
-  data.history.push({ name, date: today, category: cat, seeded: false });
-
-  // Apply chosen schedule frequency
+  storeData.items.push({ id: Date.now(), name, category: cat, checked: false, added: today, recurring: false, ownership: getOwnership(name) });
+  storeData.history.push({ name, date: today, category: cat, seeded: false });
   if (selectedFreqDays > 0) {
-    const existing = data.schedules.find(s => s.name.toLowerCase() === name.toLowerCase());
+    const existing = storeData.schedules.find(s => s.name.toLowerCase() === name.toLowerCase());
     if (existing) {
       existing.intervalDays = selectedFreqDays;
     } else {
-      data.schedules.push({
-        name,
-        intervalDays: selectedFreqDays,
-        nextDate: addDays(today, selectedFreqDays),
-        category: cat,
-        seeded: false
-      });
+      storeData.schedules.push({ name, intervalDays: selectedFreqDays, nextDate: addDays(today, selectedFreqDays), category: cat, seeded: false });
     }
   }
-
-  // Also auto-learn from history if no manual freq was set to 0
-  if (selectedFreqDays !== 0) updateFrequency(data, name);
-
-  const freqLabel = freqName(selectedFreqDays);
-  saveData(data);
+  if (selectedFreqDays !== 0) updateFrequency(storeData, name);
+  saveData(storeData);
   input.value = '';
   renderList();
-  showToast(`"${name}" added · ${freqLabel}`);
+  showToast(`"${name}" added · ${freqName(selectedFreqDays)}`);
 }
 
 document.getElementById('add-input').addEventListener('keydown', e => {
@@ -721,10 +865,10 @@ document.getElementById('add-input').addEventListener('keydown', e => {
 // ─── TOGGLE CHECK ──────────────────────────────────────────────────────────────
 
 function toggleCheck(id) {
-  const data = loadData();
-  const item = data.items.find(i => i.id === id);
+  const storeData = loadData();
+  const item = storeData.items.find(i => i.id === id);
   if (item) item.checked = !item.checked;
-  saveData(data);
+  saveData(storeData);
   renderList();
 }
 
@@ -732,21 +876,19 @@ function toggleCheck(id) {
 
 function deleteItem(id, e) {
   e.stopPropagation();
-  const data = loadData();
-  data.items = data.items.filter(i => i.id !== id);
-  saveData(data);
+  const storeData = loadData();
+  storeData.items = storeData.items.filter(i => i.id !== id);
+  saveData(storeData);
   renderList();
 }
 
 // ─── RENDER LIST ───────────────────────────────────────────────────────────────
 
 function renderList() {
-  const data = loadData();
+  const storeData = loadData();
   const container = document.getElementById('list-container');
-  const total = data.items.length;
-  const checked = data.items.filter(i => i.checked).length;
-
-  // Progress
+  const total = storeData.items.length;
+  const checked = storeData.items.filter(i => i.checked).length;
   const pct = total ? Math.round((checked / total) * 100) : 0;
   document.getElementById('progress-text').textContent = `${checked} of ${total} items checked`;
   document.getElementById('progress-pct').textContent = `${pct}%`;
@@ -759,9 +901,8 @@ function renderList() {
     return;
   }
 
-  // Group by category
   const groups = {};
-  data.items.forEach(item => {
+  storeData.items.forEach(item => {
     if (!groups[item.category]) groups[item.category] = [];
     groups[item.category].push(item);
   });
@@ -777,22 +918,19 @@ function renderList() {
     const catData = CATEGORIES[cat] || { icon: '🛍️' };
     const items = groups[cat];
     const unchecked = items.filter(i => !i.checked);
-    const checkedItems = items.filter(i => i.checked);
-    const ordered = [...unchecked, ...checkedItems];
+    const ordered = [...unchecked, ...items.filter(i => i.checked)];
 
-    html += `<div class="section">
-      <div class="section-header">
-        <span class="section-icon">${catData.icon}</span>
-        <span class="section-name">${cat}</span>
-        <span class="section-count">${unchecked.length}/${items.length}</span>
-      </div>`;
+    html += `<div class="section"><div class="section-header">
+      <span class="section-icon">${catData.icon}</span>
+      <span class="section-name">${cat}</span>
+      <span class="section-count">${unchecked.length}/${items.length}</span>
+    </div>`;
 
     ordered.forEach(item => {
       let badge = '';
       if (item.ownership === 'wife') badge = `<span class="item-badge badge-wife">Wife</span>`;
       else if (item.ownership === 'shared') badge = `<span class="item-badge badge-shared">Shared</span>`;
       else if (item.recurring) badge = `<span class="item-badge badge-recurring">↻ Weekly</span>`;
-
       html += `<div class="item-card ${item.checked ? 'checked' : ''}" onclick="toggleCheck(${item.id})">
         <div class="item-check">${item.checked ? '✓' : ''}</div>
         <div class="item-info">
@@ -813,23 +951,19 @@ function renderList() {
 // ─── RENDER HISTORY ────────────────────────────────────────────────────────────
 
 function renderHistory() {
-  const data = loadData();
+  const storeData = loadData();
   const container = document.getElementById('history-container');
-
-  // Aggregate by item name
   const freq = {};
-  data.history.filter(h => !h.seeded).forEach(h => {
+  storeData.history.filter(h => !h.seeded).forEach(h => {
     if (!freq[h.name]) freq[h.name] = { count: 0, category: h.category, lastDate: h.date };
     freq[h.name].count++;
     if (h.date > freq[h.name].lastDate) freq[h.name].lastDate = h.date;
   });
-
-  const entries = Object.entries(freq).sort((a,b) => b[1].count - a[1].count);
+  const entries = Object.entries(freq).sort((a, b) => b[1].count - a[1].count);
   if (!entries.length) {
     container.innerHTML = `<div class="empty-state"><div class="empty-icon">📋</div><div class="empty-text">No history yet — add items to your list</div></div>`;
     return;
   }
-
   let html = '';
   entries.forEach(([name, info]) => {
     const cat = CATEGORIES[info.category] || { icon: '🛍️' };
@@ -844,36 +978,19 @@ function renderHistory() {
   container.innerHTML = html;
 }
 
-// ─── FREQ HELPERS ──────────────────────────────────────────────────────────────
-
-const FREQ_PRESETS = [
-  { label: 'Daily',       days: 1  },
-  { label: 'Every 3 Days', days: 3 },
-  { label: 'Weekly',      days: 7  },
-  { label: 'Biweekly',    days: 14 },
-  { label: 'Monthly',     days: 30 },
-];
-
-function freqName(days) {
-  if (days === 0) return 'As Needed';
-  const preset = FREQ_PRESETS.find(p => p.days === days);
-  return preset ? preset.label : `Every ${days} days`;
-}
-
 // ─── CHANGE FREQUENCY (schedule page) ─────────────────────────────────────────
 
 function changeFrequency(name, days) {
-  const data = loadData();
-  const existing = data.schedules.find(s => s.name.toLowerCase() === name.toLowerCase());
+  const storeData = loadData();
+  const existing = storeData.schedules.find(s => s.name.toLowerCase() === name.toLowerCase());
   if (days === 0) {
-    // "As Needed" — remove from schedule
-    data.schedules = data.schedules.filter(s => s.name.toLowerCase() !== name.toLowerCase());
-    saveData(data);
+    storeData.schedules = storeData.schedules.filter(s => s.name.toLowerCase() !== name.toLowerCase());
+    saveData(storeData);
     showToast(`"${name}" removed from auto-schedule`);
   } else if (existing) {
     existing.intervalDays = days;
     existing.nextDate = addDays(todayStr(), days);
-    saveData(data);
+    saveData(storeData);
     showToast(`"${name}" set to ${freqName(days)}`);
   }
   renderSchedule();
@@ -882,27 +999,22 @@ function changeFrequency(name, days) {
 // ─── RENDER SCHEDULE ───────────────────────────────────────────────────────────
 
 function renderSchedule() {
-  const data = loadData();
+  const storeData = loadData();
   const container = document.getElementById('schedule-container');
-
-  if (!data.schedules.length) {
+  if (!storeData.schedules.length) {
     container.innerHTML = `<div class="empty-state"><div class="empty-icon">🔁</div><div class="empty-text">No scheduled items yet</div></div>`;
     return;
   }
-
-  const sorted = [...data.schedules].sort((a,b) => a.nextDate.localeCompare(b.nextDate));
+  const sorted = [...storeData.schedules].sort((a, b) => a.nextDate.localeCompare(b.nextDate));
   let html = '';
   sorted.forEach(s => {
     const cat = CATEGORIES[s.category] || { icon: '🛍️' };
     const currentFreq = freqName(s.intervalDays);
-
-    // Build preset pills
     let pillsHtml = FREQ_PRESETS.map(p => {
       const isCurrent = p.days === s.intervalDays;
       return `<span class="freq-change-pill ${isCurrent ? 'current' : ''}" onclick="changeFrequency('${s.name.replace(/'/g,"\\'")}', ${p.days})">${p.label}</span>`;
     }).join('');
     pillsHtml += `<span class="freq-change-pill remove" onclick="changeFrequency('${s.name.replace(/'/g,"\\'")}', 0)">✕ As Needed</span>`;
-
     html += `<div class="schedule-card">
       <div class="schedule-card-header">
         <div class="schedule-item-name">${cat.icon} ${s.name}</div>
@@ -913,6 +1025,124 @@ function renderSchedule() {
     </div>`;
   });
   container.innerHTML = html;
+}
+
+// ─── STORE SWITCHER ────────────────────────────────────────────────────────────
+
+function updateStoreHeader() {
+  const app = loadAppData();
+  const store = app.stores[app.activeStore];
+  const day = store.shoppingDay;
+  let label = '🛒 ' + app.activeStore;
+  if (day) {
+    // Abbreviate day to 3 letters
+    const shortDay = day.length > 3 ? day.slice(0, 3) : day;
+    const today = new Date().toLocaleDateString('en-US', { weekday: 'long' });
+    label += today === day ? ` · Today!` : ` · ${shortDay}`;
+  }
+  document.getElementById('store-btn-label').textContent = label;
+}
+
+function renderStoreDropdown() {
+  const app = loadAppData();
+  const dropdown = document.getElementById('store-dropdown');
+  let html = '';
+  Object.keys(app.stores).forEach(name => {
+    const store = app.stores[name];
+    const isActive = name === app.activeStore;
+    const dayLabel = store.shoppingDay ? `<span class="store-day">${store.shoppingDay}</span>` : '';
+    html += `<div class="store-dropdown-item ${isActive ? 'active' : ''}" onclick="switchStore('${name.replace(/'/g,"\\'")}')">
+      ${isActive ? '✓ ' : ''}${name}${dayLabel}
+    </div>`;
+  });
+  html += `<div class="store-dropdown-divider"></div>`;
+  html += `<div class="store-dropdown-add" onclick="openAddStoreModal()">＋ Add new store</div>`;
+  dropdown.innerHTML = html;
+}
+
+function toggleStoreDropdown(e) {
+  e.stopPropagation();
+  const dropdown = document.getElementById('store-dropdown');
+  const isOpen = dropdown.style.display !== 'none';
+  if (isOpen) {
+    dropdown.style.display = 'none';
+  } else {
+    renderStoreDropdown();
+    dropdown.style.display = 'block';
+  }
+}
+
+function closeDropdown() {
+  document.getElementById('store-dropdown').style.display = 'none';
+}
+
+document.addEventListener('click', function(e) {
+  const wrap = document.querySelector('.store-btn-wrap');
+  if (wrap && !wrap.contains(e.target)) closeDropdown();
+});
+
+function switchStore(name) {
+  const app = loadAppData();
+  app.activeStore = name;
+  saveAppData(app);
+  closeDropdown();
+  updateStoreHeader();
+  renderList();
+}
+
+// ─── ADD STORE MODAL ───────────────────────────────────────────────────────────
+
+function openAddStoreModal() {
+  closeDropdown();
+  document.getElementById('modal-store-name').value = '';
+  document.getElementById('modal-shopping-day').value = '';
+  document.getElementById('modal-name-error').textContent = '';
+  document.getElementById('modal-store-name').classList.remove('error');
+  document.getElementById('store-modal').style.display = 'flex';
+  setTimeout(() => document.getElementById('modal-store-name').focus(), 100);
+}
+
+function closeStoreModal() {
+  document.getElementById('store-modal').style.display = 'none';
+}
+
+function handleModalOverlayClick(e) {
+  if (e.target === document.getElementById('store-modal')) closeStoreModal();
+}
+
+function createStore() {
+  const nameInput = document.getElementById('modal-store-name');
+  const dayInput = document.getElementById('modal-shopping-day');
+  const errorEl = document.getElementById('modal-name-error');
+  const name = nameInput.value.trim();
+  const day = dayInput.value.trim() || null;
+
+  // Validation
+  errorEl.textContent = '';
+  nameInput.classList.remove('error');
+  if (!name) {
+    errorEl.textContent = 'Store name is required';
+    nameInput.classList.add('error');
+    nameInput.focus();
+    return;
+  }
+  const app = loadAppData();
+  const duplicate = Object.keys(app.stores).some(k => k.toLowerCase() === name.toLowerCase());
+  if (duplicate) {
+    errorEl.textContent = 'A store with this name already exists';
+    nameInput.classList.add('error');
+    nameInput.focus();
+    return;
+  }
+
+  // Create store with empty data
+  app.stores[name] = emptyStore(day);
+  app.activeStore = name;
+  saveAppData(app);
+  closeStoreModal();
+  updateStoreHeader();
+  renderList();
+  showToast(`"${name}" created`);
 }
 
 // ─── NAVIGATION ────────────────────────────────────────────────────────────────
@@ -935,24 +1165,15 @@ function showToast(msg) {
   setTimeout(() => t.classList.remove('show'), 2500);
 }
 
-// ─── STORE BADGE ───────────────────────────────────────────────────────────────
-
-function updateStoreBadge() {
-  const day = new Date().getDay(); // 0=Sun, 6=Sat
-  const badge = document.getElementById('store-badge');
-  if (day === 6) badge.textContent = '🛒 Sobeys · Today!';
-  else badge.textContent = '🛒 Sobeys · Sat';
-}
-
 // ─── INIT ──────────────────────────────────────────────────────────────────────
 
 (function init() {
-  const data = loadData();
-  seedStarterItems(data);
-  const added = checkSchedules(data);
-  saveData(data);
+  const storeData = loadData();
+  seedStarterItems(storeData);
+  const added = checkSchedules(storeData);
+  saveData(storeData);
   renderList();
-  updateStoreBadge();
+  updateStoreHeader();
   if (added.length) {
     setTimeout(() => showToast(`↻ Auto-added ${added.length} recurring item${added.length > 1 ? 's' : ''}`), 600);
   }
