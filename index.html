@@ -110,6 +110,12 @@
       color: var(--text-muted);
       margin-left: auto;
     }
+    .store-item-count {
+      font-size: 11px;
+      color: var(--text-muted);
+      font-weight: 500;
+      margin-left: 6px;
+    }
     .store-dropdown-divider { height: 1px; background: #F0F0F0; }
     .store-dropdown-add {
       display: flex;
@@ -306,6 +312,18 @@
       flex-shrink: 0;
     }
     .badge-recurring { background: var(--orange-light); color: var(--orange); }
+    #clear-checked-btn {
+      font-size: 12px;
+      font-weight: 700;
+      color: var(--orange);
+      background: none;
+      border: none;
+      cursor: pointer;
+      padding: 4px 8px;
+      border-radius: 8px;
+      touch-action: manipulation;
+      -webkit-tap-highlight-color: transparent;
+    }
     .badge-wife { background: var(--blue-light); color: var(--blue); }
     .badge-shared { background: var(--yellow-light); color: #B8940A; }
     .item-delete {
@@ -617,6 +635,7 @@
     <div class="progress-label">
       <span id="progress-text">0 of 0 items checked</span>
       <span id="progress-pct">0%</span>
+      <button id="clear-checked-btn" onclick="clearCheckedItems()" style="display:none;">Clear checked</button>
     </div>
     <div class="progress-bar"><div class="progress-fill" id="progress-fill" style="width:0%"></div></div>
   </div>
@@ -970,7 +989,11 @@ function renderList() {
   const pct = total ? Math.round((checked / total) * 100) : 0;
   document.getElementById('progress-text').textContent = `${checked} of ${total} items checked`;
   document.getElementById('progress-pct').textContent = `${pct}%`;
+  document.getElementById('clear-checked-btn').style.display = checked > 0 ? 'block' : 'none';
   document.getElementById('progress-fill').style.width = `${pct}%`;
+  if (pct === 100 && total > 0) {
+    setTimeout(() => showToast('🎉 All done — great shop!'), 300);
+  }
   document.getElementById('header-subtitle').textContent =
     total ? `${total - checked} item${total - checked !== 1 ? 's' : ''} remaining` : 'Your list is empty — add an item above';
 
@@ -1008,7 +1031,11 @@ function renderList() {
       let badge = '';
       if (item.ownership === 'wife') badge = `<span class="item-badge badge-wife">Wife</span>`;
       else if (item.ownership === 'shared') badge = `<span class="item-badge badge-shared">Shared</span>`;
-      else if (item.recurring) badge = `<span class="item-badge badge-recurring">↻ Weekly</span>`;
+      else if (item.recurring) {
+        const sched = storeData.schedules.find(s => s.name.toLowerCase() === item.name.toLowerCase());
+        const interval = sched ? sched.intervalDays : 7;
+        badge = '<span class="item-badge badge-recurring">↻ ' + freqName(interval) + '</span>';
+      }
       const skipBtn = item.recurring ? `<button class="item-skip" onclick="skipItem('${item.name.replace(/'/g,"\\'")}', event)">⏭</button>` : '';
       html += `<div class="item-card ${item.checked ? 'checked' : ''}" onclick="openItemSheet(${item.id})">
         <div class="item-check-wrap" onclick="event.stopPropagation(); toggleCheck(${item.id})">
@@ -1138,6 +1165,17 @@ function removeItemFromList() {
   showToast(`${name} removed from list`);
 }
 
+// ─── CLEAR CHECKED ITEMS ───────────────────────────────────────────────────────
+
+function clearCheckedItems() {
+  const storeData = loadData();
+  const removed = storeData.items.filter(i => i.checked).length;
+  storeData.items = storeData.items.filter(i => !i.checked);
+  saveData(storeData);
+  renderList();
+  showToast(removed + ' checked item' + (removed !== 1 ? 's' : '') + ' cleared');
+}
+
 // ─── SKIP ITEM ─────────────────────────────────────────────────────────────────
 
 let _skipItemName = null;
@@ -1222,9 +1260,10 @@ function renderStoreDropdown() {
   Object.keys(app.stores).forEach(name => {
     const store = app.stores[name];
     const isActive = name === app.activeStore;
-    const dayLabel = store.shoppingDay ? `<span class="store-day">${store.shoppingDay}</span>` : '';
+    const itemCount = store.items ? store.items.length : 0;
+    const countLabel = `<span class="store-item-count">${itemCount} item${itemCount !== 1 ? 's' : ''}</span>`;
     html += `<div class="store-dropdown-item ${isActive ? 'active' : ''}" onclick="switchStore('${name.replace(/'/g,"\\'")}')">
-      ${isActive ? '✓ ' : ''}${name}${dayLabel}
+      ${isActive ? '✓ ' : ''}${name} ${countLabel}
     </div>`;
   });
   html += `<div class="store-dropdown-divider"></div>`;
