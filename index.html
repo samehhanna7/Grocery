@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
   <title>My Grocery List</title>
   <style>
     * { box-sizing: border-box; margin: 0; padding: 0; }
@@ -30,6 +30,7 @@
       margin: 0 auto;
       min-height: 100vh;
       padding-bottom: 90px;
+      -webkit-overflow-scrolling: touch;
     }
 
     /* HEADER */
@@ -79,7 +80,7 @@
       border: 2px solid #F0F0F0;
       border-radius: 12px;
       padding: 12px 16px;
-      font-size: 15px;
+      font-size: 16px;
       background: var(--surface);
       outline: none;
       transition: border-color 0.2s;
@@ -95,6 +96,8 @@
       font-weight: 700;
       cursor: pointer;
       transition: transform 0.1s, background 0.2s;
+      touch-action: manipulation;
+      -webkit-tap-highlight-color: transparent;
     }
     .add-btn:active { transform: scale(0.94); }
 
@@ -119,7 +122,7 @@
     .freq-pill {
       font-size: 12px;
       font-weight: 600;
-      padding: 5px 12px;
+      padding: 15px 12px;
       border-radius: 99px;
       border: 2px solid #F0F0F0;
       background: var(--surface);
@@ -128,6 +131,8 @@
       flex-shrink: 0;
       transition: all 0.15s;
       white-space: nowrap;
+      touch-action: manipulation;
+      -webkit-tap-highlight-color: transparent;
     }
     .freq-pill.selected {
       background: var(--orange);
@@ -145,7 +150,7 @@
     .freq-change-pill {
       font-size: 11px;
       font-weight: 600;
-      padding: 4px 10px;
+      padding: 16px 10px;
       border-radius: 99px;
       border: 1.5px solid #E8E8E8;
       background: white;
@@ -153,6 +158,8 @@
       cursor: pointer;
       transition: all 0.15s;
       white-space: nowrap;
+      touch-action: manipulation;
+      -webkit-tap-highlight-color: transparent;
     }
     .freq-change-pill:active { transform: scale(0.95); }
     .freq-change-pill.current {
@@ -230,6 +237,8 @@
       cursor: pointer;
       transition: border-color 0.2s, background 0.2s, opacity 0.2s;
       user-select: none;
+      touch-action: manipulation;
+      -webkit-tap-highlight-color: transparent;
     }
     .item-card:active { transform: scale(0.98); }
     .item-card.checked {
@@ -294,10 +303,12 @@
       color: #CCC;
       font-size: 16px;
       cursor: pointer;
-      padding: 4px;
+      padding: 13px 4px;
       border-radius: 8px;
       flex-shrink: 0;
       transition: color 0.2s;
+      touch-action: manipulation;
+      -webkit-tap-highlight-color: transparent;
     }
     .item-delete:hover { color: #FF4444; }
 
@@ -312,7 +323,7 @@
       background: var(--bg);
       border-top: 1px solid #F0F0F0;
       display: flex;
-      padding: 10px 0 16px;
+      padding: 10px 0 calc(16px + env(safe-area-inset-bottom));
       z-index: 100;
     }
     .nav-item {
@@ -322,9 +333,11 @@
       align-items: center;
       gap: 3px;
       cursor: pointer;
-      padding: 4px;
+      padding: 6px 4px;
       border-radius: 12px;
       transition: background 0.2s;
+      touch-action: manipulation;
+      -webkit-tap-highlight-color: transparent;
     }
     .nav-item:active { background: var(--surface); }
     .nav-icon { font-size: 22px; }
