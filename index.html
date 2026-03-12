@@ -72,7 +72,7 @@
     .add-bar {
       display: flex;
       gap: 8px;
-      padding: 0 20px 16px;
+      padding: 0 20px 8px;
     }
     .add-input {
       flex: 1;
@@ -97,6 +97,76 @@
       transition: transform 0.1s, background 0.2s;
     }
     .add-btn:active { transform: scale(0.94); }
+
+    /* FREQUENCY PICKER (add bar) */
+    .freq-row {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      padding: 0 20px 14px;
+      overflow-x: auto;
+      scrollbar-width: none;
+    }
+    .freq-row::-webkit-scrollbar { display: none; }
+    .freq-label {
+      font-size: 11px;
+      font-weight: 700;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      letter-spacing: 0.4px;
+      flex-shrink: 0;
+    }
+    .freq-pill {
+      font-size: 12px;
+      font-weight: 600;
+      padding: 5px 12px;
+      border-radius: 99px;
+      border: 2px solid #F0F0F0;
+      background: var(--surface);
+      color: var(--text-muted);
+      cursor: pointer;
+      flex-shrink: 0;
+      transition: all 0.15s;
+      white-space: nowrap;
+    }
+    .freq-pill.selected {
+      background: var(--orange);
+      border-color: var(--orange);
+      color: white;
+    }
+
+    /* FREQUENCY CHANGE PILLS (schedule cards) */
+    .freq-change-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+      margin-top: 10px;
+    }
+    .freq-change-pill {
+      font-size: 11px;
+      font-weight: 600;
+      padding: 4px 10px;
+      border-radius: 99px;
+      border: 1.5px solid #E8E8E8;
+      background: white;
+      color: var(--text-muted);
+      cursor: pointer;
+      transition: all 0.15s;
+      white-space: nowrap;
+    }
+    .freq-change-pill:active { transform: scale(0.95); }
+    .freq-change-pill.current {
+      background: var(--orange-light);
+      border-color: var(--orange);
+      color: var(--orange);
+    }
+    .freq-change-pill.remove {
+      border-color: #FECACA;
+      color: #EF4444;
+    }
+    .freq-change-pill.remove:hover {
+      background: #FEF2F2;
+    }
 
     /* PROGRESS BAR */
     .progress-wrap {
@@ -358,6 +428,15 @@
     <input class="add-input" id="add-input" type="text" placeholder="Add an item…" autocomplete="off" />
     <button class="add-btn" onclick="addItem()">+</button>
   </div>
+  <div class="freq-row">
+    <span class="freq-label">Schedule:</span>
+    <span class="freq-pill" data-days="1" onclick="selectFreq(this)">Daily</span>
+    <span class="freq-pill" data-days="3" onclick="selectFreq(this)">Every 3 Days</span>
+    <span class="freq-pill selected" data-days="7" onclick="selectFreq(this)">Weekly</span>
+    <span class="freq-pill" data-days="14" onclick="selectFreq(this)">Biweekly</span>
+    <span class="freq-pill" data-days="30" onclick="selectFreq(this)">Monthly</span>
+    <span class="freq-pill" data-days="0" onclick="selectFreq(this)">As Needed</span>
+  </div>
 
   <div class="progress-wrap" id="progress-wrap">
     <div class="progress-label">
@@ -560,6 +639,16 @@ function updateFrequency(data, name) {
   }
 }
 
+// ─── FREQUENCY SELECTOR (add bar) ─────────────────────────────────────────────
+
+let selectedFreqDays = 7; // default: weekly
+
+function selectFreq(el) {
+  document.querySelectorAll('.freq-pill').forEach(p => p.classList.remove('selected'));
+  el.classList.add('selected');
+  selectedFreqDays = parseInt(el.dataset.days);
+}
+
 // ─── ADD ITEM ──────────────────────────────────────────────────────────────────
 
 function addItem() {
@@ -586,13 +675,30 @@ function addItem() {
   // Track history
   data.history.push({ name, date: today, category: cat, seeded: false });
 
-  // Update frequency
-  updateFrequency(data, name);
+  // Apply chosen schedule frequency
+  if (selectedFreqDays > 0) {
+    const existing = data.schedules.find(s => s.name.toLowerCase() === name.toLowerCase());
+    if (existing) {
+      existing.intervalDays = selectedFreqDays;
+    } else {
+      data.schedules.push({
+        name,
+        intervalDays: selectedFreqDays,
+        nextDate: addDays(today, selectedFreqDays),
+        category: cat,
+        seeded: false
+      });
+    }
+  }
 
+  // Also auto-learn from history if no manual freq was set to 0
+  if (selectedFreqDays !== 0) updateFrequency(data, name);
+
+  const freqLabel = freqName(selectedFreqDays);
   saveData(data);
   input.value = '';
   renderList();
-  showToast(`"${name}" added to ${cat}`);
+  showToast(`"${name}" added · ${freqLabel}`);
 }
 
 document.getElementById('add-input').addEventListener('keydown', e => {
@@ -725,6 +831,41 @@ function renderHistory() {
   container.innerHTML = html;
 }
 
+// ─── FREQ HELPERS ──────────────────────────────────────────────────────────────
+
+const FREQ_PRESETS = [
+  { label: 'Daily',       days: 1  },
+  { label: 'Every 3 Days', days: 3 },
+  { label: 'Weekly',      days: 7  },
+  { label: 'Biweekly',    days: 14 },
+  { label: 'Monthly',     days: 30 },
+];
+
+function freqName(days) {
+  if (days === 0) return 'As Needed';
+  const preset = FREQ_PRESETS.find(p => p.days === days);
+  return preset ? preset.label : `Every ${days} days`;
+}
+
+// ─── CHANGE FREQUENCY (schedule page) ─────────────────────────────────────────
+
+function changeFrequency(name, days) {
+  const data = loadData();
+  const existing = data.schedules.find(s => s.name.toLowerCase() === name.toLowerCase());
+  if (days === 0) {
+    // "As Needed" — remove from schedule
+    data.schedules = data.schedules.filter(s => s.name.toLowerCase() !== name.toLowerCase());
+    saveData(data);
+    showToast(`"${name}" removed from auto-schedule`);
+  } else if (existing) {
+    existing.intervalDays = days;
+    existing.nextDate = addDays(todayStr(), days);
+    saveData(data);
+    showToast(`"${name}" set to ${freqName(days)}`);
+  }
+  renderSchedule();
+}
+
 // ─── RENDER SCHEDULE ───────────────────────────────────────────────────────────
 
 function renderSchedule() {
@@ -740,14 +881,22 @@ function renderSchedule() {
   let html = '';
   sorted.forEach(s => {
     const cat = CATEGORIES[s.category] || { icon: '🛍️' };
-    const freq = s.intervalDays === 7 ? 'Weekly' : s.intervalDays === 14 ? 'Biweekly' : `Every ${s.intervalDays} days`;
-    const label = s.seeded ? 'Seeded' : 'Learned';
+    const currentFreq = freqName(s.intervalDays);
+
+    // Build preset pills
+    let pillsHtml = FREQ_PRESETS.map(p => {
+      const isCurrent = p.days === s.intervalDays;
+      return `<span class="freq-change-pill ${isCurrent ? 'current' : ''}" onclick="changeFrequency('${s.name.replace(/'/g,"\\'")}', ${p.days})">${p.label}</span>`;
+    }).join('');
+    pillsHtml += `<span class="freq-change-pill remove" onclick="changeFrequency('${s.name.replace(/'/g,"\\'")}', 0)">✕ As Needed</span>`;
+
     html += `<div class="schedule-card">
       <div class="schedule-card-header">
         <div class="schedule-item-name">${cat.icon} ${s.name}</div>
-        <span class="schedule-freq">${freq}</span>
+        <span class="schedule-freq">${currentFreq}</span>
       </div>
-      <div class="schedule-next">Next up: ${s.nextDate} · ${label}</div>
+      <div class="schedule-next">Next up: ${s.nextDate}</div>
+      <div class="freq-change-row">${pillsHtml}</div>
     </div>`;
   });
   container.innerHTML = html;
