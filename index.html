@@ -455,6 +455,25 @@
     /* DIVIDER */
     .divider { height: 12px; }
 
+    /* SCHEDULE ADD BUTTON */
+    .schedule-add-btn {
+      width: 100%;
+      background: var(--orange);
+      color: white;
+      border: none;
+      border-radius: 12px;
+      padding: 13px 18px;
+      font-size: 14px;
+      font-weight: 700;
+      cursor: pointer;
+      touch-action: manipulation;
+      -webkit-tap-highlight-color: transparent;
+    }
+    .schedule-add-btn:active { opacity: 0.85; }
+
+    /* SELECT styled as modal-input */
+    select.modal-input { appearance: none; -webkit-appearance: none; }
+
     /* MODAL */
     .modal-overlay {
       position: fixed;
@@ -589,6 +608,9 @@
 
 <div id="page-schedule" class="page">
   <div class="page-title">Auto-Schedule</div>
+  <div style="padding: 0 20px 16px;">
+    <button class="schedule-add-btn" onclick="openAddScheduleModal()">＋ Add Scheduled Item</button>
+  </div>
   <div id="schedule-container"></div>
 </div>
 
@@ -627,6 +649,35 @@
     <div class="modal-actions">
       <button class="modal-btn-cancel" onclick="closeStoreModal()">Cancel</button>
       <button class="modal-btn-create" onclick="createStore()">Create Store</button>
+    </div>
+  </div>
+</div>
+
+<!-- ADD SCHEDULE MODAL -->
+<div class="modal-overlay" id="schedule-modal" style="display:none;" onclick="handleScheduleModalOverlayClick(event)">
+  <div class="modal-box" onclick="event.stopPropagation()">
+    <div class="modal-title">Add Scheduled Item</div>
+    <div class="modal-field">
+      <label class="modal-label">Item name</label>
+      <input class="modal-input" id="sched-modal-name" type="text" placeholder="e.g. Olive Oil" autocomplete="off" />
+      <div class="modal-error" id="sched-modal-error"></div>
+    </div>
+    <div class="modal-field">
+      <label class="modal-label">Frequency</label>
+      <select class="modal-input" id="sched-modal-freq" onchange="updateFirstAppearance()">
+        <option value="7">Weekly</option>
+        <option value="14">Biweekly</option>
+        <option value="21">Every 3 weeks</option>
+        <option value="30">Monthly</option>
+      </select>
+    </div>
+    <div class="modal-field">
+      <div class="modal-label">First appearance</div>
+      <div id="sched-modal-date" style="font-size:13px;color:var(--text-muted);padding:4px 0;"></div>
+    </div>
+    <div class="modal-actions">
+      <button class="modal-btn-cancel" onclick="closeAddScheduleModal()">Cancel</button>
+      <button class="modal-btn-create" onclick="createScheduledItem()">Add to Schedule</button>
     </div>
   </div>
 </div>
@@ -1017,14 +1068,82 @@ function renderSchedule() {
     pillsHtml += `<span class="freq-change-pill remove" onclick="changeFrequency('${s.name.replace(/'/g,"\\'")}', 0)">✕ As Needed</span>`;
     html += `<div class="schedule-card">
       <div class="schedule-card-header">
-        <div class="schedule-item-name">${cat.icon} ${s.name}</div>
-        <span class="schedule-freq">${currentFreq}</span>
+        <div style="display:flex;align-items:center;gap:8px;flex:1;min-width:0;">
+          <div class="schedule-item-name">${cat.icon} ${s.name}</div>
+          <span class="schedule-freq">${currentFreq}</span>
+        </div>
+        <button class="item-delete" onclick="deleteScheduledItem('${s.name.replace(/'/g,"\\'")}')">✕</button>
       </div>
       <div class="schedule-next">Next up: ${s.nextDate}</div>
       <div class="freq-change-row">${pillsHtml}</div>
     </div>`;
   });
   container.innerHTML = html;
+}
+
+// ─── DELETE SCHEDULED ITEM ─────────────────────────────────────────────────────
+
+function deleteScheduledItem(name) {
+  const storeData = loadData();
+  storeData.schedules = storeData.schedules.filter(s => s.name.toLowerCase() !== name.toLowerCase());
+  saveData(storeData);
+  renderSchedule();
+}
+
+// ─── ADD SCHEDULE MODAL ────────────────────────────────────────────────────────
+
+function openAddScheduleModal() {
+  document.getElementById('sched-modal-name').value = '';
+  document.getElementById('sched-modal-name').classList.remove('error');
+  document.getElementById('sched-modal-error').textContent = '';
+  document.getElementById('sched-modal-freq').value = '7';
+  updateFirstAppearance();
+  document.getElementById('schedule-modal').style.display = 'flex';
+  setTimeout(() => document.getElementById('sched-modal-name').focus(), 100);
+}
+
+function closeAddScheduleModal() {
+  document.getElementById('schedule-modal').style.display = 'none';
+}
+
+function handleScheduleModalOverlayClick(e) {
+  if (e.target === document.getElementById('schedule-modal')) closeAddScheduleModal();
+}
+
+function updateFirstAppearance() {
+  const days = parseInt(document.getElementById('sched-modal-freq').value);
+  const d = new Date();
+  d.setDate(d.getDate() + days);
+  const formatted = d.toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric' });
+  document.getElementById('sched-modal-date').textContent = 'Will first appear on: ' + formatted;
+}
+
+function createScheduledItem() {
+  const nameInput = document.getElementById('sched-modal-name');
+  const errorEl = document.getElementById('sched-modal-error');
+  const name = nameInput.value.trim();
+  const days = parseInt(document.getElementById('sched-modal-freq').value);
+  errorEl.textContent = '';
+  nameInput.classList.remove('error');
+  if (!name) {
+    errorEl.textContent = 'Item name is required';
+    nameInput.classList.add('error');
+    nameInput.focus();
+    return;
+  }
+  const storeData = loadData();
+  const duplicate = storeData.schedules.some(s => s.name.toLowerCase() === name.toLowerCase());
+  if (duplicate) {
+    errorEl.textContent = 'This item is already scheduled';
+    nameInput.classList.add('error');
+    nameInput.focus();
+    return;
+  }
+  const nextDate = addDays(todayStr(), days);
+  storeData.schedules.push({ name, intervalDays: days, nextDate, category: categorize(name), seeded: false });
+  saveData(storeData);
+  closeAddScheduleModal();
+  renderSchedule();
 }
 
 // ─── STORE SWITCHER ────────────────────────────────────────────────────────────
