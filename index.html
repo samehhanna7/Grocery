@@ -254,11 +254,19 @@
       border-radius: 99px;
       overflow: hidden;
     }
+    @keyframes progressPulse {
+      0%   { box-shadow: 0 0 0 0 rgba(245, 130, 10, 0.5); }
+      70%  { box-shadow: 0 0 0 8px rgba(245, 130, 10, 0); }
+      100% { box-shadow: 0 0 0 0 rgba(245, 130, 10, 0); }
+    }
     .progress-fill {
       height: 100%;
       background: linear-gradient(90deg, var(--orange), var(--yellow));
       border-radius: 99px;
       transition: width 0.4s ease;
+    }
+    .progress-fill-complete {
+      animation: progressPulse 0.8s ease 2;
     }
 
     /* SECTION */
@@ -303,10 +311,22 @@
       -webkit-tap-highlight-color: transparent;
     }
     .item-card:active { transform: scale(0.98); }
+    @keyframes cardEntrance {
+      from { opacity: 0; transform: translateY(12px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+    .item-card-enter {
+      animation: cardEntrance 0.25s ease both;
+    }
+    @keyframes itemCheck {
+      from { opacity: 1; transform: translateY(0); }
+      to   { opacity: 0.5; transform: translateY(4px); }
+    }
     .item-card.checked {
       background: #FAFAFA;
       border-color: #E8E8E8;
       opacity: 0.7;
+      animation: itemCheck 0.25s ease forwards;
     }
     .item-check {
       width: 26px;
@@ -320,10 +340,17 @@
       flex-shrink: 0;
       transition: all 0.2s;
     }
+    @keyframes checkBounce {
+      0%   { transform: scale(1); }
+      40%  { transform: scale(1.3); }
+      70%  { transform: scale(0.9); }
+      100% { transform: scale(1); }
+    }
     .item-card.checked .item-check {
       background: var(--orange);
       border-color: var(--orange);
       color: white;
+      animation: checkBounce 0.35s cubic-bezier(0.36, 0.07, 0.19, 0.97);
     }
     .item-info { flex: 1; min-width: 0; }
     .item-name {
@@ -390,6 +417,26 @@
       -webkit-tap-highlight-color: transparent;
     }
     .item-skip:hover { color: #F5820A; }
+    .item-price-tag {
+      display: flex;
+      flex-direction: column;
+      align-items: flex-end;
+      gap: 1px;
+      flex-shrink: 0;
+    }
+    .item-price-current {
+      font-size: 13px;
+      font-weight: 700;
+      color: var(--text);
+    }
+    .item-price-change {
+      font-size: 11px;
+      font-weight: 600;
+      white-space: nowrap;
+    }
+    .item-price-change.up { color: #EF4444; }
+    .item-price-change.down { color: #22C55E; }
+    .item-price-change.same { color: var(--text-muted); }
 
     /* ITEM CHECK WRAP (dedicated tap target for check circle) */
     .item-check-wrap {
@@ -405,11 +452,20 @@
     }
 
     /* BOTTOM SHEET */
+    @keyframes slideUp {
+      from { transform: translateX(-50%) translateY(100%); }
+      to   { transform: translateX(-50%) translateY(0); }
+    }
+    @keyframes fadeInOverlay {
+      from { opacity: 0; }
+      to   { opacity: 1; }
+    }
     #item-sheet-overlay {
       position: fixed;
       inset: 0;
       background: rgba(0,0,0,0.4);
       z-index: 400;
+      animation: fadeInOverlay 0.2s ease;
     }
     #item-sheet {
       position: fixed;
@@ -424,6 +480,7 @@
       padding-bottom: calc(24px + env(safe-area-inset-bottom));
       max-height: 80vh;
       overflow-y: auto;
+      animation: slideUp 0.3s cubic-bezier(0.32, 0.72, 0, 1);
     }
     .sheet-handle {
       width: 40px;
@@ -431,6 +488,56 @@
       background: #E0E0E0;
       border-radius: 2px;
       margin: 0 auto 20px;
+    }
+
+    .sheet-section { margin-bottom: 16px; }
+    .sheet-divider { height: 1px; background: #F0F0F0; margin-bottom: 16px; }
+    .sheet-price-row {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin-bottom: 8px;
+    }
+    .penny-display {
+      flex: 1;
+      font-size: 22px;
+      font-weight: 800;
+      color: var(--text);
+      background: var(--surface);
+      border: 2px solid #F0F0F0;
+      border-radius: 12px;
+      padding: 12px 16px;
+      cursor: text;
+      transition: border-color 0.2s;
+    }
+    .penny-display.active {
+      border-color: var(--orange);
+    }
+    .penny-hidden-input {
+      position: absolute;
+      opacity: 0;
+      width: 1px;
+      height: 1px;
+      pointer-events: none;
+    }
+    .sheet-save-price-btn {
+      background: var(--orange);
+      color: white;
+      border: none;
+      border-radius: 10px;
+      padding: 12px 18px;
+      font-size: 15px;
+      font-weight: 700;
+      cursor: pointer;
+      touch-action: manipulation;
+      -webkit-tap-highlight-color: transparent;
+      white-space: nowrap;
+      flex-shrink: 0;
+    }
+    .sheet-price-history {
+      font-size: 12px;
+      color: var(--text-muted);
+      line-height: 1.8;
     }
 
     /* BOTTOM NAV */
@@ -758,6 +865,21 @@
     <div class="sheet-handle"></div>
     <div id="sheet-item-name" style="font-size:20px;font-weight:800;margin-bottom:4px;"></div>
     <div id="sheet-item-cat" class="item-meta" style="margin-bottom:16px;"></div>
+    <div class="sheet-section">
+      <div class="modal-label">PRICE</div>
+      <div class="sheet-price-row">
+        <div class="penny-display" id="penny-display" onclick="openPennyInput()">$0.00</div>
+        <input type="tel" id="penny-input" class="penny-hidden-input"
+               inputmode="tel" autocomplete="off"
+               oninput="handlePennyInput(this.value)"
+               onkeydown="handlePennyKeydown(event)"
+               onfocus="this.value=''"
+               placeholder="">
+        <button class="sheet-save-price-btn" onclick="saveItemPrice()">Log</button>
+      </div>
+      <div id="sheet-price-history" class="sheet-price-history"></div>
+    </div>
+    <div class="sheet-divider"></div>
     <div style="height:1px;background:#F0F0F0;margin-bottom:16px;"></div>
     <div class="modal-label" style="margin-bottom:12px;">CATEGORY</div>
     <select id="sheet-category" class="modal-input" style="margin-bottom:10px;">
@@ -881,7 +1003,7 @@ function freqName(days) {
 }
 
 function emptyStore(shoppingDay) {
-  return { shoppingDay: shoppingDay || null, items: [], history: [], schedules: [], lastSeedDate: null, categoryOverrides: {} };
+  return { shoppingDay: shoppingDay || null, items: [], history: [], schedules: [], lastSeedDate: null, categoryOverrides: {}, priceHistory: {} };
 }
 
 // ─── APP DATA LAYER ────────────────────────────────────────────────────────────
@@ -902,7 +1024,8 @@ function loadAppData() {
           history:      raw.history      || [],
           schedules:    raw.schedules    || [],
           lastSeedDate: raw.lastSeedDate || null,
-          categoryOverrides: {}
+          categoryOverrides: {},
+          priceHistory: {}
         }
       }
     };
@@ -995,6 +1118,7 @@ function updateFrequency(storeData, name) {
 // ─── FREQUENCY SELECTOR (add bar) ─────────────────────────────────────────────
 
 let selectedFreqDays = 7;
+let pennyCents = 0;
 
 function selectFreq(el) {
   document.querySelectorAll('.freq-pill').forEach(p => p.classList.remove('selected'));
@@ -1027,6 +1151,24 @@ function addItem() {
   closeAutocomplete();
   renderList();
   showToast(`"${name}" added · ${freqName(selectedFreqDays)}`);
+}
+
+function getItemPriceDisplay(itemName) {
+  const app = loadAppData();
+  const store = app.stores[app.activeStore];
+  if (!store.priceHistory) return null;
+  const history = store.priceHistory[itemName.toLowerCase()];
+  if (!history || history.length === 0) return null;
+  const current = history[history.length - 1].cents;
+  const currentStr = '$' + (current / 100).toFixed(2);
+  if (history.length === 1) return { current: currentStr, change: null };
+  const prev = history[history.length - 2].cents;
+  const diff = current - prev;
+  if (diff === 0) return { current: currentStr, change: { label: '→ no change', cls: 'same' } };
+  const sign = diff > 0 ? '↑' : '↓';
+  const cls = diff > 0 ? 'up' : 'down';
+  const label = `${sign} $${(Math.abs(diff) / 100).toFixed(2)}`;
+  return { current: currentStr, change: { label, cls } };
 }
 
 function getAutocompleteSuggestions(query) {
@@ -1122,8 +1264,12 @@ function renderList() {
   document.getElementById('progress-pct').textContent = `${pct}%`;
   document.getElementById('clear-checked-btn').style.display = checked > 0 ? 'block' : 'none';
   document.getElementById('progress-fill').style.width = `${pct}%`;
+  const fillEl = document.getElementById('progress-fill');
   if (pct === 100 && total > 0) {
+    fillEl.classList.add('progress-fill-complete');
     setTimeout(() => showToast('🎉 All done — great shop!'), 300);
+  } else {
+    fillEl.classList.remove('progress-fill-complete');
   }
   document.getElementById('header-subtitle').textContent =
     total ? `${total - checked} item${total - checked !== 1 ? 's' : ''} remaining` : 'Your list is empty — add an item above';
@@ -1158,7 +1304,7 @@ function renderList() {
       <span class="section-count">${unchecked.length}/${items.length}</span>
     </div>`;
 
-    ordered.forEach(item => {
+    ordered.forEach((item, index) => {
       let badge = '';
       if (item.ownership === 'wife') badge = `<span class="item-badge badge-wife">Wife</span>`;
       else if (item.ownership === 'shared') badge = `<span class="item-badge badge-shared">Shared</span>`;
@@ -1168,7 +1314,13 @@ function renderList() {
         badge = '<span class="item-badge badge-recurring">↻ ' + freqName(interval) + '</span>';
       }
       const skipBtn = item.recurring ? `<button class="item-skip" onclick="skipItem('${item.name.replace(/'/g,"\\'")}', event)">⏭</button>` : '';
-      html += `<div class="item-card ${item.checked ? 'checked' : ''}" onclick="openItemSheet(${item.id})">
+      const priceDisplay = getItemPriceDisplay(item.name);
+      const priceHtml = priceDisplay ? `
+        <div class="item-price-tag">
+          <span class="item-price-current">${priceDisplay.current}</span>
+          ${priceDisplay.change ? `<span class="item-price-change ${priceDisplay.change.cls}">${priceDisplay.change.label}</span>` : ''}
+        </div>` : '';
+      html += `<div class="item-card item-card-enter ${item.checked ? 'checked' : ''}" style="animation-delay:${index * 40}ms" onclick="openItemSheet(${item.id})">
         <div class="item-check-wrap" onclick="event.stopPropagation(); toggleCheck(${item.id})">
           <div class="item-check">${item.checked ? '✓' : ''}</div>
         </div>
@@ -1177,6 +1329,7 @@ function renderList() {
           <div class="item-meta">${item.category}</div>
         </div>
         ${badge}
+        ${priceHtml}
         ${skipBtn}
         <button class="item-delete" onclick="deleteItem(${item.id}, event)">✕</button>
       </div>`;
@@ -1228,6 +1381,27 @@ function openItemSheet(id) {
   if (!item) return;
   sheetItemId = id;
 
+  const app = loadAppData();
+  const store = app.stores[app.activeStore];
+  const priceKey = item.name.toLowerCase();
+  const priceHistory = (store.priceHistory && store.priceHistory[priceKey]) || [];
+
+  if (priceHistory.length > 0) {
+    pennyCents = priceHistory[priceHistory.length - 1].cents;
+  } else {
+    pennyCents = 0;
+  }
+  updatePennyDisplay();
+  document.getElementById('penny-display').classList.remove('active');
+
+  const histEl = document.getElementById('sheet-price-history');
+  if (priceHistory.length > 0) {
+    const recent = [...priceHistory].slice(-4).reverse();
+    histEl.innerHTML = recent.map(e => `${e.date}: $${(e.cents/100).toFixed(2)}`).join('<br>');
+  } else {
+    histEl.innerHTML = 'No price history yet';
+  }
+
   const cat = CATEGORIES[item.category] || { icon: '🛍️' };
   document.getElementById('sheet-item-name').textContent = item.name;
   document.getElementById('sheet-item-cat').textContent = cat.icon + ' ' + item.category;
@@ -1252,6 +1426,65 @@ function openItemSheet(id) {
 function closeItemSheet() {
   document.getElementById('item-sheet-overlay').style.display = 'none';
   sheetItemId = null;
+}
+
+function openPennyInput() {
+  const display = document.getElementById('penny-display');
+  const input = document.getElementById('penny-input');
+  display.classList.add('active');
+  input.style.position = 'fixed';
+  input.style.opacity = '0';
+  input.style.top = '0';
+  input.style.left = '0';
+  input.style.width = '1px';
+  input.style.height = '1px';
+  input.value = '';
+  input.focus();
+}
+
+function handlePennyInput(val) {
+  const digits = val.replace(/\D/g, '');
+  if (!digits) return;
+  const lastDigit = digits[digits.length - 1];
+  const str = String(pennyCents) + lastDigit;
+  const newVal = parseInt(str.slice(-6));
+  pennyCents = isNaN(newVal) ? 0 : newVal;
+  updatePennyDisplay();
+  document.getElementById('penny-input').value = '';
+}
+
+function handlePennyKeydown(e) {
+  if (e.key === 'Backspace') {
+    pennyCents = Math.floor(pennyCents / 10);
+    updatePennyDisplay();
+  }
+}
+
+function updatePennyDisplay() {
+  const dollars = Math.floor(pennyCents / 100);
+  const cents = pennyCents % 100;
+  document.getElementById('penny-display').textContent =
+    '$' + dollars + '.' + String(cents).padStart(2, '0');
+}
+
+function saveItemPrice() {
+  if (sheetItemId === null) return;
+  if (pennyCents === 0) { showToast('Enter a price first'); return; }
+  const app = loadAppData();
+  const store = app.stores[app.activeStore];
+  const storeData = loadData();
+  const item = storeData.items.find(i => i.id === sheetItemId);
+  if (!item) return;
+  const priceKey = item.name.toLowerCase();
+  if (!store.priceHistory) store.priceHistory = {};
+  if (!store.priceHistory[priceKey]) store.priceHistory[priceKey] = [];
+  store.priceHistory[priceKey].push({ date: todayStr(), cents: pennyCents });
+  saveAppData(app);
+  const recent = [...store.priceHistory[priceKey]].slice(-4).reverse();
+  document.getElementById('sheet-price-history').innerHTML =
+    recent.map(e => `${e.date}: $${(e.cents/100).toFixed(2)}`).join('<br>');
+  showToast(`Price logged for ${item.name}`);
+  renderList();
 }
 
 function saveItemCategory() {
