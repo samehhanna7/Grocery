@@ -1310,7 +1310,8 @@ function getAutocompleteSuggestions(query) {
       names.push(h.name);
     }
   });
-  const lower = query.toLowerCase();
+  const stripped = query.replace(/^\d+\s+/, '');
+  const lower = (stripped || query).toLowerCase();
   return names
     .filter(n => n.toLowerCase().includes(lower))
     .slice(0, 6);
@@ -1441,9 +1442,8 @@ function renderList() {
         badge = '<span class="item-badge badge-recurring">↻ ' + freqName(interval) + '</span>';
       }
       const skipBtn = item.recurring ? `<button class="item-skip" onclick="skipItem('${item.name.replace(/'/g,"\\'")}', event)">⏭</button>` : '';
-      const qtyBadge = (item.quantity && item.quantity > 1)
-        ? `<span class="item-badge badge-qty">×${item.quantity}</span>`
-        : '';
+      const qty = item.quantity || 1;
+      const qtyBadge = `<span class="item-badge badge-qty">×${qty}</span>`;
       const priceDisplay = getItemPriceDisplay(item.name);
       const priceHtml = priceDisplay ? `
         <div class="item-price-tag">
