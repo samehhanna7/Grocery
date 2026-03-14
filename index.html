@@ -29,7 +29,7 @@
       max-width: 480px;
       margin: 0 auto;
       min-height: 100vh;
-      padding-bottom: 90px;
+      padding-bottom: 160px;
       -webkit-overflow-scrolling: touch;
     }
 
@@ -149,6 +149,42 @@
       transition: border-color 0.2s;
     }
     .add-input:focus { border-color: var(--orange); }
+    .autocomplete-wrap {
+      position: relative;
+      flex: 1;
+    }
+    .autocomplete-list {
+      position: absolute;
+      bottom: calc(100% + 4px);
+      top: auto;
+      left: 0;
+      right: 0;
+      background: var(--bg);
+      border: 2px solid #F0F0F0;
+      border-radius: 12px;
+      list-style: none;
+      margin: 0;
+      padding: 4px 0;
+      z-index: 200;
+      box-shadow: var(--shadow);
+      display: none;
+      max-height: 200px;
+      overflow-y: auto;
+    }
+    .autocomplete-list li {
+      padding: 11px 16px;
+      font-size: 15px;
+      cursor: pointer;
+      touch-action: manipulation;
+      -webkit-tap-highlight-color: transparent;
+    }
+    .autocomplete-list li:active {
+      background: var(--surface);
+    }
+    .autocomplete-list li span.autocomplete-match {
+      font-weight: 700;
+      color: var(--orange);
+    }
     .add-btn {
       background: var(--orange);
       color: white;
@@ -406,10 +442,21 @@
       width: 100%;
       max-width: 480px;
       background: var(--bg);
-      border-top: 1px solid #F0F0F0;
       display: flex;
-      padding: 10px 0 calc(16px + env(safe-area-inset-bottom));
-      z-index: 100;
+      padding: 6px 0 calc(16px + env(safe-area-inset-bottom));
+      z-index: 40;
+    }
+    #add-bar-dock {
+      position: fixed;
+      bottom: calc(60px + env(safe-area-inset-bottom));
+      left: 50%;
+      transform: translateX(-50%);
+      width: 100%;
+      max-width: 480px;
+      background: var(--bg);
+      border-top: 1px solid #F0F0F0;
+      padding: 8px 0 8px;
+      z-index: 50;
     }
     .nav-item {
       flex: 1;
@@ -617,20 +664,6 @@
     <div class="header-subtitle" id="header-subtitle">Loading your list...</div>
   </div>
 
-  <div class="add-bar">
-    <input class="add-input" id="add-input" type="text" placeholder="Add an item…" autocomplete="off" />
-    <button class="add-btn" onclick="addItem()">+</button>
-  </div>
-  <div class="freq-row">
-    <span class="freq-label">Schedule:</span>
-    <span class="freq-pill" data-days="1" onclick="selectFreq(this)">Daily</span>
-    <span class="freq-pill" data-days="3" onclick="selectFreq(this)">Every 3 Days</span>
-    <span class="freq-pill selected" data-days="7" onclick="selectFreq(this)">Weekly</span>
-    <span class="freq-pill" data-days="14" onclick="selectFreq(this)">Biweekly</span>
-    <span class="freq-pill" data-days="30" onclick="selectFreq(this)">Monthly</span>
-    <span class="freq-pill" data-days="0" onclick="selectFreq(this)">As Needed</span>
-  </div>
-
   <div class="progress-wrap" id="progress-wrap">
     <div class="progress-label">
       <span id="progress-text">0 of 0 items checked</span>
@@ -646,6 +679,26 @@
 <div id="page-history" class="page">
   <div class="page-title">Item History</div>
   <div id="history-container"></div>
+</div>
+
+<!-- ADD BAR DOCK -->
+<div id="add-bar-dock">
+  <div class="freq-row">
+    <span class="freq-label">Schedule:</span>
+    <span class="freq-pill" data-days="1" onclick="selectFreq(this)">Daily</span>
+    <span class="freq-pill" data-days="3" onclick="selectFreq(this)">Every 3 Days</span>
+    <span class="freq-pill selected" data-days="7" onclick="selectFreq(this)">Weekly</span>
+    <span class="freq-pill" data-days="14" onclick="selectFreq(this)">Biweekly</span>
+    <span class="freq-pill" data-days="30" onclick="selectFreq(this)">Monthly</span>
+    <span class="freq-pill" data-days="0" onclick="selectFreq(this)">As Needed</span>
+  </div>
+  <div class="add-bar">
+    <div class="autocomplete-wrap">
+      <input class="add-input" id="add-input" type="text" placeholder="Add an item…" autocomplete="off">
+      <ul class="autocomplete-list" id="autocomplete-list"></ul>
+    </div>
+    <button class="add-btn" onclick="addItem()">+</button>
+  </div>
 </div>
 
 <!-- BOTTOM NAV -->
@@ -706,6 +759,20 @@
     <div id="sheet-item-name" style="font-size:20px;font-weight:800;margin-bottom:4px;"></div>
     <div id="sheet-item-cat" class="item-meta" style="margin-bottom:16px;"></div>
     <div style="height:1px;background:#F0F0F0;margin-bottom:16px;"></div>
+    <div class="modal-label" style="margin-bottom:12px;">CATEGORY</div>
+    <select id="sheet-category" class="modal-input" style="margin-bottom:10px;">
+      <option value="Produce">🥦 Produce</option>
+      <option value="Dairy &amp; Milk">🥛 Dairy &amp; Milk</option>
+      <option value="Yogurt">🫙 Yogurt</option>
+      <option value="Meat &amp; Seafood">🍗 Meat &amp; Seafood</option>
+      <option value="Breakfast">🥣 Breakfast</option>
+      <option value="Supplements">💪 Supplements</option>
+      <option value="Snacks">🥜 Snacks</option>
+      <option value="Other">🛍️ Other</option>
+    </select>
+    <button onclick="saveItemCategory()" style="width:100%;background:var(--blue);color:white;border:none;border-radius:12px;padding:14px;font-size:16px;font-weight:700;cursor:pointer;margin-bottom:8px;touch-action:manipulation;-webkit-tap-highlight-color:transparent;">Save Category</button>
+    <button onclick="addCustomCategory()" style="width:100%;background:none;border:none;color:var(--text-muted);font-size:13px;font-weight:600;padding:8px;cursor:pointer;margin-bottom:8px;touch-action:manipulation;-webkit-tap-highlight-color:transparent;">＋ Add custom category</button>
+    <div style="height:1px;background:#F0F0F0;margin-bottom:16px;"></div>
     <div class="modal-label" style="margin-bottom:12px;">SCHEDULE</div>
     <div style="display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:12px;">
       <span style="font-size:14px;font-weight:600;flex-shrink:0;">Frequency</span>
@@ -732,13 +799,13 @@
 // ─── CONSTANTS ─────────────────────────────────────────────────────────────────
 
 const CATEGORIES = {
-  'Produce':        { icon: '🥦', color: '#22C55E', items: ['carrots','apples','bananas','avocados','blueberries','raspberries'] },
-  'Dairy & Milk':   { icon: '🥛', color: '#3B82F6', items: ['protein milk','regular milk','milk'] },
-  'Yogurt':         { icon: '🫙', color: '#A78BFA', items: ['protein yogurt','coconut yogurt','yogurt'] },
-  'Meat & Seafood': { icon: '🍗', color: '#EF4444', items: ['chicken thighs','shrimp','chicken','beef','salmon'] },
-  'Breakfast':      { icon: '🥣', color: '#F59E0B', items: ['cereal','granola mini','granola','oats'] },
-  'Supplements':    { icon: '💪', color: '#F5820A', items: ['protein shakes','pre-workout','creatine','protein powder'] },
-  'Snacks':         { icon: '🥜', color: '#84CC16', items: ['pistachios','almonds','cashews','nuts'] },
+  'Produce':        { icon: '🥦', color: '#22C55E', items: ['carrots','apples','bananas','avocados','blueberries','raspberries','strawberries','grapes','mango','pineapple','watermelon','peaches','pears','plums','cherries','kiwi','oranges','lemons','limes','grapefruit','spinach','kale','lettuce','arugula','broccoli','cauliflower','celery','cucumber','zucchini','peppers','tomatoes','onions','garlic','ginger','potatoes','sweet potatoes','mushrooms','corn','peas','green beans','asparagus','beets','radish','cabbage','brussels sprouts','herbs','cilantro','parsley','basil','mint'] },
+  'Dairy & Milk':   { icon: '🥛', color: '#3B82F6', items: ['protein milk','regular milk','milk','oat milk','almond milk','soy milk','coconut milk','lactose free milk','skim milk','2% milk','whole milk','cream','half and half','butter','ghee','cream cheese','sour cream','cottage cheese','whipping cream','condensed milk','evaporated milk'] },
+  'Yogurt':         { icon: '🫙', color: '#A78BFA', items: ['protein yogurt','coconut yogurt','yogurt','greek yogurt','skyr','kefir','probiotic yogurt','plain yogurt','vanilla yogurt','fruit yogurt'] },
+  'Meat & Seafood': { icon: '🍗', color: '#EF4444', items: ['chicken thighs','shrimp','chicken','beef','salmon','ground beef','ground turkey','turkey','pork','lamb','bacon','sausage','steak','ribs','brisket','tuna','tilapia','cod','halibut','mahi','scallops','crab','lobster','clams','mussels','squid','sardines','anchovies','hot dogs','deli meat','pepperoni','prosciutto','ham','salami'] },
+  'Breakfast':      { icon: '🥣', color: '#F59E0B', items: ['cereal','granola mini','granola','oats','oatmeal','overnight oats','eggs','egg whites','bagel','bread','toast','english muffin','pancake mix','waffle mix','syrup','jam','peanut butter','almond butter','nut butter','muffins','croissant','waffles','french toast'] },
+  'Supplements':    { icon: '💪', color: '#F5820A', items: ['protein shakes','pre-workout','creatine','protein powder','whey protein','protein bar','protein bars','bcaa','amino acids','multivitamin','vitamins','vitamin c','vitamin d','omega 3','fish oil','magnesium','zinc','collagen','probiotics','electrolytes','greens powder','mass gainer'] },
+  'Snacks':         { icon: '🥜', color: '#84CC16', items: ['pistachios','almonds','cashews','nuts','mixed nuts','peanuts','walnuts','pecans','macadamia','trail mix','chips','crackers','pretzels','popcorn','rice cakes','granola bar','protein bar','energy bar','chocolate','dark chocolate','candy','gummies','dried fruit','dates','jerky','hummus','guacamole','salsa','dip'] },
   'Other':          { icon: '🛍️', color: '#94A3B8', items: [] },
 };
 
@@ -778,6 +845,11 @@ const FREQ_PRESETS = [
 
 function categorize(name) {
   const lower = name.toLowerCase().trim();
+  const app = loadAppData();
+  const store = app.stores[app.activeStore];
+  if (store.categoryOverrides && store.categoryOverrides[lower]) {
+    return store.categoryOverrides[lower];
+  }
   for (const [cat, data] of Object.entries(CATEGORIES)) {
     if (cat === 'Other') continue;
     if (data.items.some(k => lower.includes(k) || k.includes(lower))) return cat;
@@ -809,7 +881,7 @@ function freqName(days) {
 }
 
 function emptyStore(shoppingDay) {
-  return { shoppingDay: shoppingDay || null, items: [], history: [], schedules: [], lastSeedDate: null };
+  return { shoppingDay: shoppingDay || null, items: [], history: [], schedules: [], lastSeedDate: null, categoryOverrides: {} };
 }
 
 // ─── APP DATA LAYER ────────────────────────────────────────────────────────────
@@ -829,7 +901,8 @@ function loadAppData() {
           items:        raw.items        || [],
           history:      raw.history      || [],
           schedules:    raw.schedules    || [],
-          lastSeedDate: raw.lastSeedDate || null
+          lastSeedDate: raw.lastSeedDate || null,
+          categoryOverrides: {}
         }
       }
     };
@@ -951,12 +1024,70 @@ function addItem() {
   if (selectedFreqDays !== 0) updateFrequency(storeData, name);
   saveData(storeData);
   input.value = '';
+  closeAutocomplete();
   renderList();
   showToast(`"${name}" added · ${freqName(selectedFreqDays)}`);
 }
 
+function getAutocompleteSuggestions(query) {
+  if (!query || query.length < 1) return [];
+  const app = loadAppData();
+  const store = app.stores[app.activeStore];
+  const seen = new Set();
+  const names = [];
+  store.history.forEach(h => {
+    if (!seen.has(h.name.toLowerCase())) {
+      seen.add(h.name.toLowerCase());
+      names.push(h.name);
+    }
+  });
+  const lower = query.toLowerCase();
+  return names
+    .filter(n => n.toLowerCase().includes(lower))
+    .slice(0, 6);
+}
+
+function renderAutocomplete(query) {
+  const list = document.getElementById('autocomplete-list');
+  const suggestions = getAutocompleteSuggestions(query);
+  if (!suggestions.length || !query) {
+    list.style.display = 'none';
+    list.innerHTML = '';
+    return;
+  }
+  const lower = query.toLowerCase();
+  list.innerHTML = suggestions.map(name => {
+    const idx = name.toLowerCase().indexOf(lower);
+    const before = name.slice(0, idx);
+    const match = name.slice(idx, idx + query.length);
+    const after = name.slice(idx + query.length);
+    return `<li onmousedown="selectAutocomplete('${name.replace(/'/g, "\\'")}')">${before}<span class="autocomplete-match">${match}</span>${after}</li>`;
+  }).join('');
+  list.style.display = 'block';
+}
+
+function selectAutocomplete(name) {
+  const input = document.getElementById('add-input');
+  input.value = name;
+  document.getElementById('autocomplete-list').style.display = 'none';
+  input.focus();
+}
+
+function closeAutocomplete() {
+  document.getElementById('autocomplete-list').style.display = 'none';
+}
+
+document.getElementById('add-input').addEventListener('input', function() {
+  renderAutocomplete(this.value.trim());
+});
+
+document.getElementById('add-input').addEventListener('blur', function() {
+  setTimeout(closeAutocomplete, 150);
+});
+
 document.getElementById('add-input').addEventListener('keydown', e => {
   if (e.key === 'Enter') addItem();
+  if (e.key === 'Escape') closeAutocomplete();
 });
 
 // ─── TOGGLE CHECK ──────────────────────────────────────────────────────────────
@@ -1100,6 +1231,7 @@ function openItemSheet(id) {
   const cat = CATEGORIES[item.category] || { icon: '🛍️' };
   document.getElementById('sheet-item-name').textContent = item.name;
   document.getElementById('sheet-item-cat').textContent = cat.icon + ' ' + item.category;
+  document.getElementById('sheet-category').value = item.category;
 
   const schedule = storeData.schedules.find(s => s.name.toLowerCase() === item.name.toLowerCase());
   const validDays = ['1','3','7','14','30','0'];
@@ -1120,6 +1252,43 @@ function openItemSheet(id) {
 function closeItemSheet() {
   document.getElementById('item-sheet-overlay').style.display = 'none';
   sheetItemId = null;
+}
+
+function saveItemCategory() {
+  if (sheetItemId === null) return;
+  const selectedCategory = document.getElementById('sheet-category').value;
+  const app = loadAppData();
+  const store = app.stores[app.activeStore];
+  const item = store.items.find(i => i.id === sheetItemId);
+  if (!item) return;
+  if (selectedCategory === item.category) {
+    closeItemSheet();
+    return;
+  }
+  item.category = selectedCategory;
+  if (!store.categoryOverrides) store.categoryOverrides = {};
+  store.categoryOverrides[item.name.toLowerCase()] = selectedCategory;
+  saveAppData(app);
+  renderList();
+  closeItemSheet();
+  showToast(`${item.name} moved to ${selectedCategory}`);
+}
+
+function addCustomCategory() {
+  const newName = prompt('New category name:');
+  if (!newName || !newName.trim()) return;
+  const trimmed = newName.trim();
+  if (CATEGORIES[trimmed]) {
+    showToast('Category already exists');
+    return;
+  }
+  CATEGORIES[trimmed] = { icon: '🛍️', color: '#94A3B8', items: [] };
+  const select = document.getElementById('sheet-category');
+  const opt = document.createElement('option');
+  opt.value = trimmed;
+  opt.textContent = '🛍️ ' + trimmed;
+  select.appendChild(opt);
+  select.value = trimmed;
 }
 
 function onSheetFreqChange() {
