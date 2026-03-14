@@ -29,7 +29,7 @@
       max-width: 480px;
       margin: 0 auto;
       min-height: 100vh;
-      padding-bottom: 160px;
+      padding-bottom: 260px;
       -webkit-overflow-scrolling: touch;
     }
 
@@ -444,6 +444,15 @@
       font-weight: 800;
       min-width: 32px;
       text-align: center;
+    }
+    @keyframes qtySaved {
+      0%   { transform: scale(1);    background: var(--orange); }
+      40%  { transform: scale(1.12); background: #22C55E; }
+      70%  { transform: scale(0.95); background: #22C55E; }
+      100% { transform: scale(1);    background: var(--orange); }
+    }
+    .sheet-save-qty-btn.saved {
+      animation: qtySaved 0.4s cubic-bezier(0.36, 0.07, 0.19, 0.97) forwards;
     }
     .sheet-save-qty-btn {
       background: var(--orange);
@@ -996,6 +1005,7 @@
         <button class="sheet-save-price-btn" onclick="saveItemPrice()">Log</button>
       </div>
       <div id="sheet-price-history" class="sheet-price-history"></div>
+      <button id="clear-price-history-btn" onclick="clearItemPriceHistory()" style="display:none; margin-top:6px; background:none; border:none; color:#FF4444; font-size:12px; font-weight:600; cursor:pointer; padding:2px 0; touch-action:manipulation; -webkit-tap-highlight-color:transparent;">Clear price history</button>
     </div>
     <div class="sheet-divider"></div>
     <div style="height:1px;background:#F0F0F0;margin-bottom:16px;"></div>
@@ -1532,6 +1542,8 @@ function openItemSheet(id) {
   } else {
     histEl.innerHTML = 'No price history yet';
   }
+  document.getElementById('clear-price-history-btn').style.display =
+    priceHistory.length > 0 ? 'block' : 'none';
 
   const cat = CATEGORIES[item.category] || { icon: '🛍️' };
   document.getElementById('sheet-item-name').textContent = item.name;
@@ -1614,7 +1626,34 @@ function saveItemQty() {
   item.quantity = newQty;
   saveData(storeData);
   renderList();
+  const qtyBtn = document.querySelector('.sheet-save-qty-btn');
+  if (qtyBtn) {
+    qtyBtn.classList.remove('saved');
+    void qtyBtn.offsetWidth;
+    qtyBtn.classList.add('saved');
+    setTimeout(() => qtyBtn.classList.remove('saved'), 450);
+  }
   showToast(`${item.name} quantity set to ${newQty}`);
+}
+
+function clearItemPriceHistory() {
+  if (sheetItemId === null) return;
+  const app = loadAppData();
+  const store = app.stores[app.activeStore];
+  const storeData = loadData();
+  const item = storeData.items.find(i => i.id === sheetItemId);
+  if (!item) return;
+  const priceKey = item.name.toLowerCase();
+  if (store.priceHistory && store.priceHistory[priceKey]) {
+    delete store.priceHistory[priceKey];
+    saveAppData(app);
+  }
+  pennyCents = 0;
+  updatePennyDisplay();
+  document.getElementById('sheet-price-history').innerHTML = 'No price history yet';
+  document.getElementById('clear-price-history-btn').style.display = 'none';
+  renderList();
+  showToast(`Price history cleared for ${item.name}`);
 }
 
 function saveItemPrice() {
