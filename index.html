@@ -351,6 +351,15 @@
       opacity: 0.7;
       animation: itemCheck 0.25s ease forwards;
     }
+    @keyframes slide-to-bottom {
+      0%   { transform: translateY(0);   opacity: 1; }
+      60%  { transform: translateY(18px); opacity: 0.5; }
+      100% { transform: translateY(32px); opacity: 0; }
+    }
+    .item-checking {
+      animation: slide-to-bottom 0.38s ease-in forwards;
+      pointer-events: none;
+    }
     .item-check {
       width: 26px;
       height: 26px;
@@ -467,6 +476,18 @@
       -webkit-tap-highlight-color: transparent;
       white-space: nowrap;
       flex-shrink: 0;
+    }
+    #uncheck-all-btn {
+      font-size: 12px;
+      font-weight: 700;
+      color: var(--blue);
+      background: none;
+      border: none;
+      cursor: pointer;
+      padding: 4px 8px;
+      border-radius: 8px;
+      touch-action: manipulation;
+      -webkit-tap-highlight-color: transparent;
     }
     #clear-checked-btn {
       font-size: 12px;
@@ -740,6 +761,127 @@
     }
     .toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
 
+    /* AUTO-ADDED MODAL */
+    #auto-added-modal {
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,0.4);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 300;
+      padding: 24px;
+    }
+    #auto-added-list {
+      list-style: none;
+      margin: 0 0 20px;
+      padding: 0;
+      max-height: 240px;
+      overflow-y: auto;
+    }
+    #auto-added-list li {
+      font-size: 15px;
+      font-weight: 600;
+      padding: 8px 0;
+      border-bottom: 1px solid #F0F0F0;
+      color: var(--text);
+    }
+    #auto-added-list li:last-child { border-bottom: none; }
+    .modal-subtitle {
+      font-size: 13px;
+      color: var(--text-muted);
+      margin-bottom: 16px;
+      margin-top: -12px;
+    }
+    .auto-added-got-it {
+      width: 100%;
+      padding: 14px;
+    }
+
+    /* SEARCH BAR */
+    #search-bar-container {
+      display: none;
+      align-items: center;
+      gap: 8px;
+      padding: 8px 20px 10px;
+      background: var(--bg);
+    }
+    #search-input {
+      flex: 1;
+      border: 2px solid #F0F0F0;
+      border-radius: 12px;
+      padding: 10px 14px;
+      font-size: 15px;
+      background: var(--surface);
+      outline: none;
+      transition: border-color 0.2s;
+      min-width: 0;
+    }
+    #search-input:focus { border-color: var(--orange); }
+    #search-next-btn {
+      background: var(--orange-light);
+      color: var(--orange);
+      border: none;
+      border-radius: 10px;
+      padding: 10px 12px;
+      font-size: 13px;
+      font-weight: 700;
+      cursor: pointer;
+      white-space: nowrap;
+      touch-action: manipulation;
+      -webkit-tap-highlight-color: transparent;
+      flex-shrink: 0;
+    }
+    #search-match-count {
+      font-size: 12px;
+      font-weight: 600;
+      color: var(--text-muted);
+      white-space: nowrap;
+      flex-shrink: 0;
+      min-width: 36px;
+      text-align: center;
+    }
+    #search-close-btn {
+      background: none;
+      border: none;
+      color: var(--text-muted);
+      font-size: 16px;
+      cursor: pointer;
+      padding: 8px 4px;
+      flex-shrink: 0;
+      touch-action: manipulation;
+      -webkit-tap-highlight-color: transparent;
+    }
+    #search-toggle-btn {
+      background: none;
+      border: none;
+      font-size: 18px;
+      cursor: pointer;
+      padding: 4px 8px;
+      border-radius: 8px;
+      touch-action: manipulation;
+      -webkit-tap-highlight-color: transparent;
+      color: var(--text-muted);
+      transition: color 0.15s;
+    }
+    #search-toggle-btn:active { color: var(--orange); }
+
+    @keyframes searchPulse {
+      0%   { box-shadow: 0 0 0 0 rgba(245, 130, 10, 0.5); }
+      60%  { box-shadow: 0 0 0 6px rgba(245, 130, 10, 0); }
+      100% { box-shadow: 0 0 0 0 rgba(245, 130, 10, 0); }
+    }
+    .search-highlight {
+      border-color: rgba(245, 130, 10, 0.4) !important;
+      background: var(--orange-light) !important;
+      transition: border-color 0.2s, background 0.2s;
+    }
+    .search-highlight-active {
+      border-color: var(--orange) !important;
+      background: var(--orange-light) !important;
+      animation: searchPulse 0.5s ease;
+    }
+
     /* DIVIDER */
     .divider { height: 12px; }
 
@@ -853,15 +995,25 @@
   <div class="header">
     <div class="header-top">
       <div class="header-title">My Groceries</div>
-      <div class="store-btn-wrap">
-        <button class="store-btn" id="store-btn" onclick="toggleStoreDropdown(event)">
-          <span id="store-btn-label">🛒 Sobeys</span>
-          <span class="store-chevron">▾</span>
-        </button>
-        <div class="store-dropdown" id="store-dropdown" style="display:none;"></div>
+      <div style="display:flex;align-items:center;gap:6px;">
+        <button id="search-toggle-btn" onclick="openSearch()">🔍</button>
+        <div class="store-btn-wrap">
+          <button class="store-btn" id="store-btn" onclick="toggleStoreDropdown(event)">
+            <span id="store-btn-label">🛒 Sobeys</span>
+            <span class="store-chevron">▾</span>
+          </button>
+          <div class="store-dropdown" id="store-dropdown" style="display:none;"></div>
+        </div>
       </div>
     </div>
     <div class="header-subtitle" id="header-subtitle">Loading your list...</div>
+  </div>
+
+  <div id="search-bar-container">
+    <input id="search-input" type="text" placeholder="Search items on your list…" autocomplete="off">
+    <button id="search-next-btn" onclick="nextMatch()">Next</button>
+    <span id="search-match-count"></span>
+    <button id="search-close-btn" onclick="closeSearch()">✕</button>
   </div>
 
   <div class="progress-wrap" id="progress-wrap">
@@ -869,6 +1021,7 @@
       <span id="progress-text">0 of 0 items checked</span>
       <span id="progress-pct">0%</span>
       <button id="clear-checked-btn" onclick="clearCheckedItems()" style="display:none;">Clear checked</button>
+      <button id="uncheck-all-btn" onclick="uncheckAllItems()" style="display:none;">Uncheck all</button>
     </div>
     <div class="progress-bar"><div class="progress-fill" id="progress-fill" style="width:0%"></div></div>
   </div>
@@ -957,6 +1110,16 @@
     <div id="delete-store-message" style="font-size:15px;color:var(--text-muted);margin-bottom:20px;line-height:1.5;"></div>
     <button style="background:#FF4444;color:white;width:100%;padding:14px;border:none;border-radius:12px;font-size:16px;font-weight:700;cursor:pointer;margin-bottom:10px;touch-action:manipulation;-webkit-tap-highlight-color:transparent;" onclick="executeDeleteStore()">Yes, delete</button>
     <button style="background:none;border:none;color:var(--text-muted);padding:12px;font-size:14px;font-weight:600;cursor:pointer;width:100%;touch-action:manipulation;-webkit-tap-highlight-color:transparent;" onclick="closeDeleteStoreModal()">Cancel</button>
+  </div>
+</div>
+
+<!-- AUTO-ADDED MODAL -->
+<div id="auto-added-modal" style="display:none;" onclick="handleAutoAddedOverlayClick(event)">
+  <div class="modal-box" onclick="event.stopPropagation()">
+    <div class="modal-title">🛒 Items Added to Your List</div>
+    <div class="modal-subtitle">These recurring items are ready to buy:</div>
+    <ul id="auto-added-list"></ul>
+    <button class="modal-btn-create auto-added-got-it" onclick="closeAutoAddedModal()">Got it</button>
   </div>
 </div>
 
@@ -1131,7 +1294,7 @@ function freqName(days) {
 }
 
 function emptyStore(shoppingDay) {
-  return { shoppingDay: shoppingDay || null, items: [], history: [], schedules: [], lastSeedDate: null, categoryOverrides: {}, priceHistory: {} };
+  return { shoppingDay: shoppingDay || null, items: [], history: [], schedules: [], lastSeedDate: null, categoryOverrides: {}, priceHistory: {}, lastBought: {} };
 }
 
 // ─── APP DATA LAYER ────────────────────────────────────────────────────────────
@@ -1276,9 +1439,7 @@ function addItem() {
   storeData.history.push({ name: parsedName, date: today, category: cat, seeded: false });
   if (selectedFreqDays > 0) {
     const existing = storeData.schedules.find(s => s.name.toLowerCase() === parsedName.toLowerCase());
-    if (existing) {
-      existing.intervalDays = selectedFreqDays;
-    } else {
+    if (!existing) {
       storeData.schedules.push({ name: parsedName, intervalDays: selectedFreqDays, nextDate: addDays(today, selectedFreqDays), category: cat, seeded: false });
     }
   }
@@ -1375,9 +1536,33 @@ document.getElementById('add-input').addEventListener('keydown', e => {
 function toggleCheck(id) {
   const storeData = loadData();
   const item = storeData.items.find(i => i.id === id);
-  if (item) item.checked = !item.checked;
-  saveData(storeData);
-  renderList();
+  if (!item) return;
+
+  const isChecking = !item.checked;
+
+  if (isChecking) {
+    const card = document.querySelector(`.item-card[data-id="${id}"]`);
+    if (card) {
+      card.classList.add('item-checking');
+      setTimeout(() => {
+        item.checked = true;
+        if (!storeData.lastBought) storeData.lastBought = {};
+        storeData.lastBought[item.name.toLowerCase()] = todayStr();
+        saveData(storeData);
+        renderList();
+      }, 380);
+    } else {
+      item.checked = true;
+      if (!storeData.lastBought) storeData.lastBought = {};
+      storeData.lastBought[item.name.toLowerCase()] = todayStr();
+      saveData(storeData);
+      renderList();
+    }
+  } else {
+    item.checked = false;
+    saveData(storeData);
+    renderList();
+  }
 }
 
 // ─── DELETE ITEM ───────────────────────────────────────────────────────────────
@@ -1401,6 +1586,7 @@ function renderList() {
   document.getElementById('progress-text').textContent = `${checked} of ${total} items checked`;
   document.getElementById('progress-pct').textContent = `${pct}%`;
   document.getElementById('clear-checked-btn').style.display = checked > 0 ? 'block' : 'none';
+  document.getElementById('uncheck-all-btn').style.display = checked > 0 ? 'block' : 'none';
   document.getElementById('progress-fill').style.width = `${pct}%`;
   const fillEl = document.getElementById('progress-fill');
   if (pct === 100 && total > 0) {
@@ -1460,7 +1646,7 @@ function renderList() {
           <span class="item-price-current">${priceDisplay.current}</span>
           ${priceDisplay.change ? `<span class="item-price-change ${priceDisplay.change.cls}">${priceDisplay.change.label}</span>` : ''}
         </div>` : '';
-      html += `<div class="item-card item-card-enter ${item.checked ? 'checked' : ''}" style="animation-delay:${index * 40}ms" onclick="openItemSheet(${item.id})">
+      html += `<div class="item-card item-card-enter ${item.checked ? 'checked' : ''}" data-id="${item.id}" style="animation-delay:${index * 40}ms" onclick="openItemSheet(${item.id})">
         <div class="item-check-wrap" onclick="event.stopPropagation(); toggleCheck(${item.id})">
           <div class="item-check">${item.checked ? '✓' : ''}</div>
         </div>
@@ -1505,7 +1691,7 @@ function renderHistory() {
         <div class="schedule-item-name">${cat.icon} ${name}</div>
         <span class="schedule-freq">${info.count}× added</span>
       </div>
-      <div class="schedule-next">Last added: ${info.lastDate} · Category: ${info.category}</div>
+      ${(() => { const boughtDate = storeData.lastBought && storeData.lastBought[name.toLowerCase()]; const boughtLabel = boughtDate ? `Last bought: ${boughtDate}` : `Not yet bought`; return `<div class="schedule-next">Last added: ${info.lastDate} · ${boughtLabel} · Category: ${info.category}</div>`; })()}
     </div>`;
   });
   container.innerHTML = html;
@@ -1765,6 +1951,16 @@ function clearCheckedItems() {
   saveData(storeData);
   renderList();
   showToast(removed + ' checked item' + (removed !== 1 ? 's' : '') + ' cleared');
+}
+
+function uncheckAllItems() {
+  const storeData = loadData();
+  const count = storeData.items.filter(i => i.checked).length;
+  if (!count) return;
+  storeData.items.forEach(i => { i.checked = false; });
+  saveData(storeData);
+  renderList();
+  showToast(count + ' item' + (count !== 1 ? 's' : '') + ' unchecked');
 }
 
 // ─── SKIP ITEM ─────────────────────────────────────────────────────────────────
@@ -2047,6 +2243,95 @@ function showPage(page) {
   if (page === 'history') renderHistory();
 }
 
+// ─── AUTO-ADDED MODAL ──────────────────────────────────────────────────────────
+
+function showAutoAddedModal(itemNames) {
+  document.getElementById('auto-added-list').innerHTML = itemNames.map(n => `<li>↻ ${n}</li>`).join('');
+  document.getElementById('auto-added-modal').style.display = 'flex';
+}
+
+function closeAutoAddedModal() {
+  document.getElementById('auto-added-modal').style.display = 'none';
+}
+
+function handleAutoAddedOverlayClick(e) {
+  if (e.target === document.getElementById('auto-added-modal')) closeAutoAddedModal();
+}
+
+// ─── SEARCH ────────────────────────────────────────────────────────────────────
+
+let searchMatches = [];
+let searchMatchIndex = 0;
+
+function openSearch() {
+  const container = document.getElementById('search-bar-container');
+  container.style.display = 'flex';
+  const input = document.getElementById('search-input');
+  input.value = '';
+  searchMatches = [];
+  searchMatchIndex = 0;
+  document.getElementById('search-match-count').textContent = '';
+  input.focus();
+}
+
+function closeSearch() {
+  document.getElementById('search-bar-container').style.display = 'none';
+  document.querySelectorAll('.item-card').forEach(c => {
+    c.classList.remove('search-highlight', 'search-highlight-active');
+  });
+  searchMatches = [];
+  searchMatchIndex = 0;
+}
+
+function runSearch() {
+  const query = document.getElementById('search-input').value.trim().toLowerCase();
+  const cards = document.querySelectorAll('#list-container .item-card');
+  cards.forEach(c => c.classList.remove('search-highlight', 'search-highlight-active'));
+  if (!query) {
+    searchMatches = [];
+    document.getElementById('search-match-count').textContent = '';
+    return;
+  }
+  searchMatches = [];
+  cards.forEach(card => {
+    const nameEl = card.querySelector('.item-name');
+    if (nameEl && nameEl.textContent.toLowerCase().includes(query)) {
+      searchMatches.push(card);
+      card.classList.add('search-highlight');
+    }
+  });
+  searchMatchIndex = 0;
+  const countEl = document.getElementById('search-match-count');
+  if (searchMatches.length > 0) {
+    scrollToMatch(0);
+  } else {
+    countEl.textContent = 'No results';
+  }
+}
+
+function scrollToMatch(index) {
+  document.querySelectorAll('.item-card').forEach(c => c.classList.remove('search-highlight-active'));
+  const card = searchMatches[index];
+  if (!card) return;
+  card.classList.add('search-highlight-active');
+  card.scrollIntoView({ behavior: 'smooth', block: 'center' });
+  document.getElementById('search-match-count').textContent = `${index + 1} of ${searchMatches.length}`;
+}
+
+function nextMatch() {
+  if (searchMatches.length === 0) return;
+  searchMatchIndex = (searchMatchIndex + 1) % searchMatches.length;
+  scrollToMatch(searchMatchIndex);
+}
+
+document.getElementById('search-input').addEventListener('input', function() {
+  runSearch();
+});
+document.getElementById('search-input').addEventListener('keydown', function(e) {
+  if (e.key === 'Enter') nextMatch();
+  if (e.key === 'Escape') closeSearch();
+});
+
 // ─── TOAST ─────────────────────────────────────────────────────────────────────
 
 function showToast(msg) {
@@ -2066,7 +2351,7 @@ function showToast(msg) {
   renderList();
   updateStoreHeader();
   if (added.length) {
-    setTimeout(() => showToast(`↻ Auto-added ${added.length} recurring item${added.length > 1 ? 's' : ''}`), 600);
+    setTimeout(() => showAutoAddedModal(added), 600);
   }
 })();
 </script>
