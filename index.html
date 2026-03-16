@@ -761,6 +761,57 @@
     }
     .toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
 
+    /* RECENTLY CLEARED MODAL */
+    #recently-cleared-modal {
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,0.4);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 300;
+      padding: 24px;
+    }
+    #recently-cleared-list {
+      list-style: none;
+      margin: 0 0 20px;
+      padding: 0;
+      max-height: 280px;
+      overflow-y: auto;
+    }
+    #recently-cleared-list li {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 12px 0;
+      border-bottom: 1px solid #F0F0F0;
+      font-size: 15px;
+      font-weight: 600;
+      cursor: pointer;
+      touch-action: manipulation;
+      -webkit-tap-highlight-color: transparent;
+      transition: background 0.15s;
+    }
+    #recently-cleared-list li:last-child { border-bottom: none; }
+    #recently-cleared-list li:active { background: var(--surface); }
+    .recently-cleared-close-btn {
+      width: 100%;
+      padding: 12px;
+      text-align: center;
+    }
+    #recently-cleared-btn {
+      font-size: 12px;
+      font-weight: 700;
+      color: #888;
+      background: none;
+      border: none;
+      cursor: pointer;
+      padding: 4px 8px;
+      border-radius: 8px;
+      touch-action: manipulation;
+      -webkit-tap-highlight-color: transparent;
+    }
+
     /* AUTO-ADDED MODAL */
     #auto-added-modal {
       position: fixed;
@@ -1022,6 +1073,7 @@
       <span id="progress-pct">0%</span>
       <button id="clear-checked-btn" onclick="clearCheckedItems()" style="display:none;">Clear checked</button>
       <button id="uncheck-all-btn" onclick="uncheckAllItems()" style="display:none;">Uncheck all</button>
+      <button id="recently-cleared-btn" onclick="openRecentlyClearedModal()" style="display:none;">Recently Cleared</button>
     </div>
     <div class="progress-bar"><div class="progress-fill" id="progress-fill" style="width:0%"></div></div>
   </div>
@@ -1110,6 +1162,16 @@
     <div id="delete-store-message" style="font-size:15px;color:var(--text-muted);margin-bottom:20px;line-height:1.5;"></div>
     <button style="background:#FF4444;color:white;width:100%;padding:14px;border:none;border-radius:12px;font-size:16px;font-weight:700;cursor:pointer;margin-bottom:10px;touch-action:manipulation;-webkit-tap-highlight-color:transparent;" onclick="executeDeleteStore()">Yes, delete</button>
     <button style="background:none;border:none;color:var(--text-muted);padding:12px;font-size:14px;font-weight:600;cursor:pointer;width:100%;touch-action:manipulation;-webkit-tap-highlight-color:transparent;" onclick="closeDeleteStoreModal()">Cancel</button>
+  </div>
+</div>
+
+<!-- RECENTLY CLEARED MODAL -->
+<div id="recently-cleared-modal" style="display:none;" onclick="handleRecentlyClearedOverlayClick(event)">
+  <div class="modal-box" onclick="event.stopPropagation()">
+    <div class="modal-title">🗑️ Recently Cleared</div>
+    <div class="modal-subtitle">Tap an item to restore it to your list as checked.</div>
+    <ul id="recently-cleared-list"></ul>
+    <button class="modal-btn-cancel recently-cleared-close-btn" onclick="closeRecentlyClearedModal()">Close</button>
   </div>
 </div>
 
@@ -1294,7 +1356,7 @@ function freqName(days) {
 }
 
 function emptyStore(shoppingDay) {
-  return { shoppingDay: shoppingDay || null, items: [], history: [], schedules: [], lastSeedDate: null, categoryOverrides: {}, priceHistory: {}, lastBought: {} };
+  return { shoppingDay: shoppingDay || null, items: [], history: [], schedules: [], lastSeedDate: null, categoryOverrides: {}, priceHistory: {}, lastBought: {}, recentlyCleared: [] };
 }
 
 // ─── APP DATA LAYER ────────────────────────────────────────────────────────────
@@ -1587,6 +1649,9 @@ function renderList() {
   document.getElementById('progress-pct').textContent = `${pct}%`;
   document.getElementById('clear-checked-btn').style.display = checked > 0 ? 'block' : 'none';
   document.getElementById('uncheck-all-btn').style.display = checked > 0 ? 'block' : 'none';
+  const clearedData = loadData();
+  const hasCleared = clearedData.recentlyCleared && clearedData.recentlyCleared.length > 0;
+  document.getElementById('recently-cleared-btn').style.display = hasCleared ? 'block' : 'none';
   document.getElementById('progress-fill').style.width = `${pct}%`;
   const fillEl = document.getElementById('progress-fill');
   if (pct === 100 && total > 0) {
@@ -1946,11 +2011,23 @@ function removeItemFromList() {
 
 function clearCheckedItems() {
   const storeData = loadData();
-  const removed = storeData.items.filter(i => i.checked).length;
+  const cleared = storeData.items.filter(i => i.checked);
+  if (!cleared.length) return;
+
+  if (!storeData.recentlyCleared) storeData.recentlyCleared = [];
+
+  cleared.forEach(item => {
+    storeData.recentlyCleared.push({ ...item, clearedDate: todayStr() });
+  });
+
+  if (storeData.recentlyCleared.length > 20) {
+    storeData.recentlyCleared = storeData.recentlyCleared.slice(-20);
+  }
+
   storeData.items = storeData.items.filter(i => !i.checked);
   saveData(storeData);
   renderList();
-  showToast(removed + ' checked item' + (removed !== 1 ? 's' : '') + ' cleared');
+  showToast(cleared.length + ' checked item' + (cleared.length !== 1 ? 's' : '') + ' cleared');
 }
 
 function uncheckAllItems() {
@@ -2241,6 +2318,57 @@ function showPage(page) {
     document.getElementById(`nav-${p}`).classList.toggle('active', p === page);
   });
   if (page === 'history') renderHistory();
+}
+
+// ─── RECENTLY CLEARED MODAL ────────────────────────────────────────────────────
+
+function openRecentlyClearedModal() {
+  const storeData = loadData();
+  const cleared = storeData.recentlyCleared || [];
+  const list = document.getElementById('recently-cleared-list');
+
+  if (!cleared.length) {
+    list.innerHTML = '<li style="opacity:0.5; cursor:default;">No recently cleared items.</li>';
+  } else {
+    list.innerHTML = [...cleared].reverse().map((item, index) => {
+      const realIndex = cleared.length - 1 - index;
+      const cat = CATEGORIES[item.category] || { icon: '🛍️' };
+      return `<li onclick="restoreClearedItem(${realIndex})">
+        <span>${cat.icon} ${item.name}</span>
+        <span style="font-size:11px;font-weight:500;color:var(--text-muted);">Cleared ${item.clearedDate}</span>
+      </li>`;
+    }).join('');
+  }
+
+  document.getElementById('recently-cleared-modal').style.display = 'flex';
+}
+
+function closeRecentlyClearedModal() {
+  document.getElementById('recently-cleared-modal').style.display = 'none';
+}
+
+function handleRecentlyClearedOverlayClick(e) {
+  if (e.target === document.getElementById('recently-cleared-modal')) closeRecentlyClearedModal();
+}
+
+function restoreClearedItem(index) {
+  const storeData = loadData();
+  if (!storeData.recentlyCleared || !storeData.recentlyCleared[index]) return;
+
+  const item = storeData.recentlyCleared[index];
+  item.checked = true;
+  item.id = Date.now() + Math.random();
+
+  const alreadyOnList = storeData.items.find(i => i.name.toLowerCase() === item.name.toLowerCase());
+  if (!alreadyOnList) {
+    storeData.items.push(item);
+  }
+
+  storeData.recentlyCleared.splice(index, 1);
+  saveData(storeData);
+  closeRecentlyClearedModal();
+  renderList();
+  showToast(`${item.name} restored to list`);
 }
 
 // ─── AUTO-ADDED MODAL ──────────────────────────────────────────────────────────
